@@ -1,12 +1,12 @@
 package com.demo.acepilot;
 
 public class Bullet extends Circle{
-	private double bullet_moveX;	//子彈位置x
-	private double bullet_moveY;	//子彈位置y
-	private double bullet_flyX;
-	private double bullet_flyY;
-	private double fly_moveX;
-	private double fly_moveY;
+	private double bullet_moveX;	//子彈x方向位移
+	private double bullet_moveY;	//子彈y方向位移
+	private double bullet_flyX;		//子彈x方向的飛行位移
+	private double bullet_flyY;		//子彈y方向的飛行位移
+	private double fly_moveX;		//子彈x方向飛行總位移
+	private double fly_moveY;		//子彈y方向飛行總位移
 	
 	public  Bullet(){
 		super();

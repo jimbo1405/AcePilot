@@ -58,7 +58,7 @@ public class Circle
         gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, 360);  
   
         //畫圖結束  
-        gl.glFinish();  
+//        gl.glFinish();  							//不加這行，因為會造成cpu block住
     }  
   
     public void setyAngle(float yAngle)  
