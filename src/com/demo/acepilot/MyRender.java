@@ -11,12 +11,13 @@ import android.util.Log;
 
 public class MyRender implements Renderer{
 	
+	public static float moveX,moveY;
 	public String motion="";					//用來識別動作的字串
 	
 	private float x_screen=0,y_screen=0;		//視窗的寬與高
 	private float x_movePix,y_movePix;			//飛機x,y方向的像素位移
 	private int x_move,y_move;					//飛機x,y方向的位移
-	private float ratio_pixToDist;				//比值，座標上每單位相當於多少像素
+	public static float ratio_pixToDist;				//比值，座標上每單位相當於多少像素
 	private boolean isStart=false;				//isStart為false，則會進行首次繪圖設定
 	private Square square;
 	private ArrayList<Bullet> bulletList;		//宣告預備子彈的list
@@ -50,32 +51,33 @@ public class MyRender implements Renderer{
 		  }
 		 
 		  gl.glPushMatrix();											//儲存目前gl狀態		 
-		  if(motion.equals("UP")){
-			  if(y_movePix <= (y_screen/2)){
-				  y_move++;												//y方向位移量+1
-				  y_movePix=(float)(y_move*0.01*ratio_pixToDist*0.25);	//model位在負Z軸10單位處，而near平面位在0.1單位處，由於model的scale變更過，
-			  }															//因此於model處1單位的移動量，於近平面的移動量要乘上(0.1/10)及0.25，並乘上比例轉成像素
-			  Log.d("Wang","y_move="+y_move);			 
-		  }else if(motion.equals("DOWN")){
-			  if(y_movePix >= (-y_screen/2)){
-				  y_move--;
-				  y_movePix=(float)(y_move*0.01*ratio_pixToDist*0.25);
-			  }
-			  Log.d("Wang","y_move="+y_move);
-		  }else if(motion.equals("LEFT")){
-			  if(x_movePix >= (-x_screen/2)){
-				  --x_move;
-				  x_movePix=(float)(x_move*0.01*ratio_pixToDist*0.25);
-			  }
-			  Log.d("Wang","x_move="+x_move);
-		  }else if(motion.equals("RIGHT")){
-			  if(x_movePix <= (x_screen/2)){
-				  ++x_move;
-				  x_movePix=(float)(x_move*0.01*ratio_pixToDist*0.25);
-			  }
-			  Log.d("Wang","x_move="+x_move);
-		  }		  
-		  gl.glTranslatef(x_move, y_move, 0);							//決定x_move,y_move後進行位移
+//		  if(motion.equals("UP")){
+//			  if(y_movePix <= (y_screen/2)){
+//				  y_move++;												//y方向位移量+1
+//				  y_movePix=(float)(y_move*0.01*ratio_pixToDist*0.25);	//model位在負Z軸10單位處，而near平面位在0.1單位處，由於model的scale變更過，
+//			  }															//因此於model處1單位的移動量，於近平面的移動量要乘上(0.1/10)及0.25，並乘上比例轉成像素
+//			  Log.d("Wang","y_move="+y_move);			 
+//		  }else if(motion.equals("DOWN")){
+//			  if(y_movePix >= (-y_screen/2)){
+//				  y_move--;
+//				  y_movePix=(float)(y_move*0.01*ratio_pixToDist*0.25);
+//			  }
+//			  Log.d("Wang","y_move="+y_move);
+//		  }else if(motion.equals("LEFT")){
+//			  if(x_movePix >= (-x_screen/2)){
+//				  --x_move;
+//				  x_movePix=(float)(x_move*0.01*ratio_pixToDist*0.25);
+//			  }
+//			  Log.d("Wang","x_move="+x_move);
+//		  }else if(motion.equals("RIGHT")){
+//			  if(x_movePix <= (x_screen/2)){
+//				  ++x_move;
+//				  x_movePix=(float)(x_move*0.01*ratio_pixToDist*0.25);
+//			  }
+//			  Log.d("Wang","x_move="+x_move);
+//		  }		  
+//		  gl.glTranslatef(x_move, y_move, 0);							//決定x_move,y_move後進行位移
+		  gl.glTranslatef(moveX, moveY, 0);
 		  square.draw(gl);		  										//畫出方形
 		  gl.glPopMatrix();												//回到上一個gl儲存點的狀態
 		  		  		  		  
