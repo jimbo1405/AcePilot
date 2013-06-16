@@ -25,10 +25,19 @@ public class MyGlSurfaceView extends GLSurfaceView{
         case MotionEvent.ACTION_MOVE:        	
         	float dx = x - mPreviousX;
             float dy = (-1)*(y - mPreviousY);
-            MyRender.moveX += dx / (MyRender.ratio_pixToDist*0.01*0.25);	//由像素轉回座標上物體實際該位移多少
-            MyRender.moveY += dy / (MyRender.ratio_pixToDist*0.01*0.25);
+            
+            //兩個if判斷，positionX,positionY加上dx,dy後的絕對值要分別小於螢幕寬、長的一半，也就是在螢幕範圍內position才做增減
+            if(Math.abs(MyRender.player_positionY+dy / (MyRender.ratio_pixToDist*0.01*0.25)) <
+        			(0.5*MyRender.y_screen/MyRender.ratio_pixToDist)/(0.25*0.01)){
+            	MyRender.player_positionY += dy / (MyRender.ratio_pixToDist*0.01*0.25);
+            }	
+            if(Math.abs(MyRender.player_positionX+dx / (MyRender.ratio_pixToDist*0.01*0.25)) <
+            		(0.5*MyRender.x_screen/MyRender.ratio_pixToDist)/(0.25*0.01)){
+            	MyRender.player_positionX += dx / (MyRender.ratio_pixToDist*0.01*0.25);
+            }
+
             requestRender();
-            Log.d("Wang","moveX="+MyRender.moveX+" moveY="+MyRender.moveY);
+            Log.d("Wang","moveX="+MyRender.player_positionX+" moveY="+MyRender.player_positionY);
         }
         mPreviousX = x;
         mPreviousY = y;

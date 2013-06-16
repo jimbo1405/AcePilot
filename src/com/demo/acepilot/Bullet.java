@@ -1,69 +1,76 @@
 package com.demo.acepilot;
 
 public class Bullet extends Circle{
-	private double bullet_moveX;	//子彈x方向位移
-	private double bullet_moveY;	//子彈y方向位移
-	private double bullet_flyX;		//子彈x方向的飛行位移
-	private double bullet_flyY;		//子彈y方向的飛行位移
-	private double fly_moveX;		//子彈x方向飛行總位移
-	private double fly_moveY;		//子彈y方向飛行總位移
+	private double bullet_positionX;	//子彈x方向位移
+	private double bullet_positionY;	//子彈y方向位移
+	private double bullet_fly;			//子彈x方向的飛行位移	
+	private double bullet_totalFly;		//子彈x方向飛行總位移	
+	private double bulletAngle;			//子彈的圓心角
 	
 	public  Bullet(){
 		super();
-		setBullet_moveX(0);
-		setBullet_moveY(0);
-		setBullet_flyX(0);
-		setBullet_flyY(0);
-		setFly_moveX(0);
-		setFly_moveY(0);
+		setBullet_positionX(0);
+		setBullet_positionY(0);
+		setBullet_fly(0);
+		setBullet_totalFly(0);		
 	}
 
-	public double getBullet_moveX() {
-		return bullet_moveX;
+	
+
+	public double getBullet_positionX() {
+		return bullet_positionX;
 	}
 
-	public void setBullet_moveX(double bullet_moveX) {
-		this.bullet_moveX = bullet_moveX;
+
+
+	public void setBullet_positionX(double bullet_positionX) {
+		this.bullet_positionX = bullet_positionX;
 	}
 
-	public double getBullet_moveY() {
-		return bullet_moveY;
+
+
+	public double getBullet_positionY() {
+		return bullet_positionY;
 	}
 
-	public void setBullet_moveY(double bullet_moveY) {
-		this.bullet_moveY = bullet_moveY;
+
+
+	public void setBullet_positionY(double bullet_positionY) {
+		this.bullet_positionY = bullet_positionY;
 	}
 
-	public double getBullet_flyX() {
-		return bullet_flyX;
+			
+
+	public double getBullet_fly() {
+		return bullet_fly;
 	}
 
-	public void setBullet_flyX(double bullet_flyX) {
-		this.bullet_flyX = bullet_flyX;
+
+
+	public void setBullet_fly(double bullet_fly) {
+		this.bullet_fly = bullet_fly;
 	}
 
-	public double getBullet_flyY() {
-		return bullet_flyY;
+
+
+	public double getBullet_totalFly() {
+		return bullet_totalFly;
 	}
 
-	public void setBullet_flyY(double bullet_flyY) {
-		this.bullet_flyY = bullet_flyY;
+
+
+	public void setBullet_totalFly(double bullet_totalFly) {
+		this.bullet_totalFly = bullet_totalFly;
 	}
 
-	public double getFly_moveX() {
-		return fly_moveX;
+
+
+	public double getBulletAngle() {
+		return bulletAngle;
 	}
 
-	public void setFly_moveX(double fly_moveX) {
-		this.fly_moveX = fly_moveX;
-	}
-
-	public double getFly_moveY() {
-		return fly_moveY;
-	}
-
-	public void setFly_moveY(double fly_moveY) {
-		this.fly_moveY = fly_moveY;
+	public void setBulletAngle(double bulletAngle) {
+		this.bulletAngle = bulletAngle;
 	}
 	
 	

@@ -11,19 +11,19 @@ import android.util.Log;
 
 public class MyRender implements Renderer{
 	
-	public static float moveX,moveY;
+	public static float player_positionX,player_positionY;
 	public String motion="";					//用來識別動作的字串
 	
-	private float x_screen=0,y_screen=0;		//視窗的寬與高
+	public static float x_screen=0,y_screen=0;		//視窗的寬與高
 	private float x_movePix,y_movePix;			//飛機x,y方向的像素位移
 	private int x_move,y_move;					//飛機x,y方向的位移
 	public static float ratio_pixToDist;				//比值，座標上每單位相當於多少像素
 	private boolean isStart=false;				//isStart為false，則會進行首次繪圖設定
 	private Square square;
 	private ArrayList<Bullet> bulletList;		//宣告預備子彈的list
-	private final int num_bullet=50;			//設定預備子彈數目
+	private final int num_bullet=30;			//設定預備子彈數目
 	private double radius; 						//佈署子彈的圓之半徑(單位:像素)
-	private double bullteAngle;					//佈署子彈的圓心角
+	private float tmpPlayer_positionX=0,tmpPlayer_positionY=0;
 		
 //	private float angle = 0;
 
@@ -77,24 +77,30 @@ public class MyRender implements Renderer{
 //			  Log.d("Wang","x_move="+x_move);
 //		  }		  
 //		  gl.glTranslatef(x_move, y_move, 0);							//決定x_move,y_move後進行位移
-		  gl.glTranslatef(moveX, moveY, 0);
+		  gl.glTranslatef(player_positionX, player_positionY, 0);
 		  square.draw(gl);		  										//畫出方形
 		  gl.glPopMatrix();												//回到上一個gl儲存點的狀態
 		  		  		  		  
-		  prepareBullet();		  
-		  for(int i=0;i<bulletList.size();i++){														//畫出子彈起始位置的迴圈			  						  
+		  if(bulletList.size() == 0){
+			  tmpPlayer_positionX = player_positionX;
+			  tmpPlayer_positionY = player_positionY;
+		  }		  
+		  prepareBullet();		 
+		//畫出子彈起始位置的迴圈
+		  for(int i=0;i<bulletList.size();i++){														  						  
 			  Bullet b=bulletList.get(i);
-			  gl.glPushMatrix();
-			  gl.glTranslatef((float)(b.getBullet_moveX()), (float)(b.getBullet_moveY()), 0);		//平移
+			  gl.glPushMatrix();			  
+			  gl.glTranslatef((float)(b.getBullet_positionX()), (float)(b.getBullet_positionY()), 0);		//平移
 			  gl.glScalef(0.25f, 0.25f, 0.25f);			  
 			  b.draw(gl);			  
-			  deleteBullet(b,i);			  			  											//檢查是否需要消除子彈
+			  deleteBullet(b,i);			  			  								//檢查是否需要消除子彈
 			  gl.glPopMatrix();			  			  
 			  
-			  b.setBullet_moveX(b.getBullet_moveX()+b.getBullet_flyX());							//設定當前子彈下一個frame時x方向的位移
-			  b.setBullet_moveY(b.getBullet_moveY()+b.getBullet_flyY());							//設定當前子彈下一個frame時y方向的位移
-			  b.setFly_moveX(b.getFly_moveX()+b.getBullet_flyX());									//設定當前子彈x方向飛行總位移
-			  b.setFly_moveY(b.getFly_moveY()+b.getBullet_flyY());			  						//設定當前子彈y方向飛行總位移
+			  b.setBullet_positionX(b.getBullet_positionX() - 
+					  b.getBullet_fly()*Math.cos(b.getBulletAngle()*Math.PI/180));	 	//設定當前子彈下一個frame時x方向的位移
+			  b.setBullet_positionY(b.getBullet_positionY() - 
+					  b.getBullet_fly()*Math.sin(b.getBulletAngle()*Math.PI/180));		//設定當前子彈下一個frame時y方向的位移
+			  b.setBullet_totalFly(b.getBullet_totalFly() + b.getBullet_fly());			//設定當前子彈飛行總位移
 		  }
 		  
 //		  gl.glPushMatrix();	
@@ -165,7 +171,7 @@ public class MyRender implements Renderer{
 		  x_screen=width;
 		  y_screen=height;
 		  ratio_pixToDist=(float)(height/(2*Math.tan(22.5*Math.PI/180)*0.1));	//螢幕上的1單位相當於多少像素
-		  radius=0.5*Math.sqrt(width*width + height*height);					//設定佈署子彈的圓之半徑=畫面的斜邊長
+		  radius=Math.sqrt(width*width + height*height);					//設定佈署子彈的圓之半徑=畫面的斜邊長
 		  Log.d("Wang","ratio_pixToDist="+ ratio_pixToDist);
 		  Log.d("Wang","x_screen="+x_screen+" y_screen="+y_screen);
 		  Log.d("Wang","radius="+ radius);		  
@@ -196,31 +202,41 @@ public class MyRender implements Renderer{
 	
 	//準備子彈
 	private void prepareBullet(){															
-		bullteAngle=0;																		//子彈圓心角初始為0
+		double tmpAngle=0;																	//子彈圓心角初始為0
 		if(bulletList.size() == 0){															//當bulletList的長度=0時
 			bulletList=new ArrayList<Bullet>();												//bulletList就再指向一個新的ArrayList
 			while(bulletList.size() <= num_bullet){											//當bulletList的長度<=指定的子彈樹目時，進入迴圈				
 				  Bullet tmpBullet=new Bullet();			  
 				  
-				  double tmpRadius=(radius/ratio_pixToDist)/(0.25*0.01);					//將半徑從像素轉換成座標上的單位
-				  tmpBullet.setBullet_moveX(tmpRadius*Math.cos(bullteAngle*Math.PI/180));	//設定當前子彈初始x方向的位移
-				  tmpBullet.setBullet_moveY(tmpRadius*Math.sin(bullteAngle*Math.PI/180));	//設定當前子彈初始y方向的位移
+				  double tmpRadius=(radius/ratio_pixToDist)/(0.25*0.01);					//將半徑從像素轉換成座標上的單位				  
+				  tmpBullet.setBullet_positionX(tmpRadius*Math.cos(tmpAngle*Math.PI/180) + tmpPlayer_positionX);	//設定當前子彈初始x方向的位移
+				  tmpBullet.setBullet_positionY(tmpRadius*Math.sin(tmpAngle*Math.PI/180) + tmpPlayer_positionY);	//設定當前子彈初始y方向的位移
+				  /*
 				  tmpBullet.setBullet_flyX(((2*Math.random()-1)));							//設定當前子彈x方向的飛行位移，-1~1，可乘上係數調整飛行速度
 				  tmpBullet.setBullet_flyY(((2*Math.random()-1)));							//設定當前子彈y方向的飛行位移，-1~1，可乘上係數調整飛行速度
+				  */
+				  tmpBullet.setBullet_fly((Math.random()+1)/10);							//設定飛行距離，0.1~0.1999...				 
+				  
+				  tmpBullet.setBulletAngle(tmpAngle);										//設定子彈圓心角
 				  
 				  bulletList.add(tmpBullet);												
-				  bullteAngle=bullteAngle + 360/num_bullet;
+				  tmpAngle=tmpAngle + 360/num_bullet;
 			  }		  		  
 		}		
 	}
 	
 	//消除飛出圓周之外的子彈，傳入整數i表示當前bulletList的index值
 	private void deleteBullet(Bullet b,int i){
-//		Log.d("Wang","tmpFly="+Math.sqrt(b.getFly_moveX()*b.getFly_moveX() + b.getFly_moveY()*b.getFly_moveY()));
-		double tmpFly=Math.sqrt(b.getFly_moveX()*b.getFly_moveX() + b.getFly_moveY()*b.getFly_moveY());			//當前子彈的飛行總位移
-		double tmpRadius=(radius/ratio_pixToDist)/(0.25*0.01);													//將半徑從像素轉換成座標上的單位
-		if(tmpFly > 2*tmpRadius)																				//飛行總位移>直徑
-			bulletList.remove(i);																				//則從bulletList刪除當前子彈
+		double tmpFly=b.getBullet_totalFly();													//當前子彈的飛行總位移
+		double tmpRadius=(radius/ratio_pixToDist)/(0.25*0.01);									//將半徑從像素轉換成座標上的單位
+		
+		//if判斷子彈必須在螢幕外 且 至少飛了半徑長度的距離才能從list刪掉
+		if(Math.abs(b.getBullet_positionX()) > (0.5*x_screen/ratio_pixToDist)/(0.25*0.01) || 
+				Math.abs(b.getBullet_positionY()) > (0.5*y_screen/ratio_pixToDist)/(0.25*0.01)){
+			if(tmpFly > tmpRadius)
+				bulletList.remove(i);
+		}
+
 	}
 	
 
