@@ -8,6 +8,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLSurfaceView.Renderer;
 import android.opengl.GLU;
 import android.util.Log;
+import android.widget.Toast;
 
 public class MyRender implements Renderer{
 	
@@ -24,13 +25,14 @@ public class MyRender implements Renderer{
 	private final int num_bullet=30;			//設定預備子彈數目
 	private double radius; 						//佈署子彈的圓之半徑(單位:像素)
 	private float tmpPlayer_positionX=0,tmpPlayer_positionY=0;
-		
+	public static boolean isDie;						//是否被擊中	
 //	private float angle = 0;
 
 	 public MyRender() {
-	  // 初始化
-	  square = new Square();	 
-	 }
+		 Log.d("ABC","MyRender()...");
+		 square = new Square();	
+		 isDie=false;			//初始、重置為false，因為MainActivity的onCreate()比onResume()早呼叫，
+	 }							//所以onResume()裡抓到的isDie就是重置過的
 
 	
 	@Override
@@ -96,6 +98,8 @@ public class MyRender implements Renderer{
 			  deleteBullet(b,i);			  			  								//檢查是否需要消除子彈
 			  gl.glPopMatrix();			  			  
 			  
+			  checkDie(b);
+			  
 			  b.setBullet_positionX(b.getBullet_positionX() - 
 					  b.getBullet_fly()*Math.cos(b.getBulletAngle()*Math.PI/180));	 	//設定當前子彈下一個frame時x方向的位移
 			  b.setBullet_positionY(b.getBullet_positionY() - 
@@ -158,6 +162,7 @@ public class MyRender implements Renderer{
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		// TODO Auto-generated method stub
+		Log.d("ABC","onSurfaceChanged(GL10 gl, int width, int height)...");
 		// 設定新視域視窗的大小
 		  gl.glViewport(0, 0, width, height);
 		  // 選擇投射的陣列模式
@@ -184,6 +189,7 @@ public class MyRender implements Renderer{
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		// TODO Auto-generated method stub
+		Log.d("ABC","onSurfaceCreated(GL10 gl, EGLConfig config)...");
 		// 設定背景顏色為黑色, 格式是RGBA
 		  gl.glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
 		  // 設定流暢的陰影模式
@@ -196,7 +202,7 @@ public class MyRender implements Renderer{
 		  gl.glDepthFunc(GL10.GL_LEQUAL);
 		  // 設定很好的角度計算模式
 		  gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
-		  
+		  		  
 		  bulletList=new ArrayList<Bullet>();
 	}
 	
@@ -239,6 +245,13 @@ public class MyRender implements Renderer{
 
 	}
 	
+	//測試是否被子彈擊中
+	private void checkDie(Bullet b){
+		if((b.getBullet_positionX() >= MyRender.player_positionX - 1 && b.getBullet_positionX() <= MyRender.player_positionX + 1) &&
+				(b.getBullet_positionY() >= MyRender.player_positionY - 1 && b.getBullet_positionY() <= MyRender.player_positionY + 1)){
+			isDie=true;
+		}
+	}		
 
 	
 }

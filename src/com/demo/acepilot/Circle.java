@@ -39,7 +39,7 @@ public class Circle
         //重置投影矩陣 
 //        gl.glLoadIdentity();  
         // 移動操作，移入屏幕(Z軸)5個像素, x, y , z  
-        gl.glTranslatef(0.0f, 0.0f, -5.0f);  
+//        gl.glTranslatef(0.0f, 0.0f, -5.0f);  
           
         //旋轉, angle, x, y , z  
         gl.glRotatef(yAngle, 0.0f, 1.0f, 0.0f);  
