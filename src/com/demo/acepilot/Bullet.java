@@ -1,11 +1,12 @@
 package com.demo.acepilot;
 
 public class Bullet extends Circle{
-	private double bullet_positionX;	//子彈x方向位移
-	private double bullet_positionY;	//子彈y方向位移
-	private double bullet_fly;			//子彈x方向的飛行位移	
-	private double bullet_totalFly;		//子彈x方向飛行總位移	
+	private double bullet_positionX;	//子彈X位置
+	private double bullet_positionY;	//子彈Y位置
+	private double bullet_fly;			//子彈朝玩家飛行的速度(景物單位/秒)	
+	private double bullet_totalFly;		//子彈飛行總位移	
 	private double bulletAngle;			//子彈的圓心角
+	private double bulletFlyAngle;		//子彈位置對玩家之向量與(1,0)向量之夾角(0~360)
 	
 	public  Bullet(){
 		super();
@@ -71,6 +72,18 @@ public class Bullet extends Circle{
 
 	public void setBulletAngle(double bulletAngle) {
 		this.bulletAngle = bulletAngle;
+	}
+
+
+
+	public double getBulletFlyAngle() {
+		return bulletFlyAngle;
+	}
+
+
+
+	public void setBulletFlyAngle(double bulletFlyAngle) {
+		this.bulletFlyAngle = bulletFlyAngle;
 	}
 	
 	

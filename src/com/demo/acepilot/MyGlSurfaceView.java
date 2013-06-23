@@ -17,23 +17,23 @@ public class MyGlSurfaceView extends GLSurfaceView{
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
-//		Log.d("Wang","TouchEvent x="+event.getX()+" y="+event.getY());
+		Log.d("ABC","TouchEvent x="+event.getX()+" y="+event.getY());
 		
 		float x = event.getX();
         float y = event.getY();
         switch (event.getAction()) {
         case MotionEvent.ACTION_MOVE:        	
-        	float dx = x - mPreviousX;
-            float dy = (-1)*(y - mPreviousY);
+        	float dx = (float)((x - mPreviousX)*MyConstant.PLAYER_VELOCITY_COFF);
+            float dy = (float)((-1)*(y - mPreviousY)*MyConstant.PLAYER_VELOCITY_COFF);
             
             //兩個if判斷，positionX,positionY加上dx,dy後的絕對值要分別小於螢幕寬、長的一半，也就是在螢幕範圍內position才做增減
-            if(Math.abs(MyRender.player_positionY+dy / (MyRender.ratio_pixToDist*0.01*0.25)) <
-        			(0.5*MyRender.y_screen/MyRender.ratio_pixToDist)/(0.25*0.01)){
-            	MyRender.player_positionY += dy / (MyRender.ratio_pixToDist*0.01*0.25);
+            if(Math.abs(MyRender.player_positionY+dy / (MyRender.ratio_pixToDist*0.01)) <
+        			(0.5*MyRender.y_screen/MyRender.ratio_pixToDist)/0.01){
+            	MyRender.player_positionY += dy / (MyRender.ratio_pixToDist*0.01);
             }	
-            if(Math.abs(MyRender.player_positionX+dx / (MyRender.ratio_pixToDist*0.01*0.25)) <
-            		(0.5*MyRender.x_screen/MyRender.ratio_pixToDist)/(0.25*0.01)){
-            	MyRender.player_positionX += dx / (MyRender.ratio_pixToDist*0.01*0.25);
+            if(Math.abs(MyRender.player_positionX+dx / (MyRender.ratio_pixToDist*0.01)) <
+            		(0.5*MyRender.x_screen/MyRender.ratio_pixToDist)/0.01){
+            	MyRender.player_positionX += dx / (MyRender.ratio_pixToDist*0.01);
             }
 
             requestRender();
