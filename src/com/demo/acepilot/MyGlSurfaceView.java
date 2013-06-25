@@ -17,7 +17,7 @@ public class MyGlSurfaceView extends GLSurfaceView{
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
-		Log.d("ABC","TouchEvent x="+event.getX()+" y="+event.getY());
+//		Log.d("ABC","TouchEvent x="+event.getX()+" y="+event.getY());
 		
 		float x = event.getX();
         float y = event.getY();

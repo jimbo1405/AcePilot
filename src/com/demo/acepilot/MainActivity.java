@@ -8,10 +8,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -26,8 +28,10 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+		Log.d("ABC","onCreate(Bundle savedInstanceState)...");
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//設定全螢幕
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		
 		setContentView(R.layout.activity_main);
 		findView();
@@ -35,67 +39,12 @@ public class MainActivity extends Activity {
 		gl_layout=(FrameLayout)findViewById(R.id.gl_layout);	//find出frameLayout
 		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//建立MyGlSurfaceView的物件
 		myGlSurfaceView.setRenderer(new MyRender());	//設定render
-		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout
-		
-		
+		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout		
 	}
 	
 	//find出元件
 	private void findView(){
-//		btnUp=(Button)findViewById(R.id.button1);
-//		btnDown=(Button)findViewById(R.id.button2);
-//		btnLeft=(Button)findViewById(R.id.button3);
-//		btnRight=(Button)findViewById(R.id.button4);
-//		
-//		
-//		btnUp.setOnTouchListener(new View.OnTouchListener() {
-//		    @Override
-//		    public boolean onTouch(View v, MotionEvent event) {
-//		        if(event.getAction() == MotionEvent.ACTION_DOWN) {
-//		        	myRender.motion="UP";
-//		        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-//		        	myRender.motion="";
-//		        }
-//		        return false;   
-//		    }    
-//		});
-//		
-//		btnDown.setOnTouchListener(new View.OnTouchListener() {
-//		    @Override
-//		    public boolean onTouch(View v, MotionEvent event) {
-//		        if(event.getAction() == MotionEvent.ACTION_DOWN) {
-//		        	myRender.motion="DOWN";
-//		        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-//		        	myRender.motion="";
-//		        }
-//		        return false;   
-//		    }    
-//		});
-//		
-//		btnLeft.setOnTouchListener(new View.OnTouchListener() {
-//		    @Override
-//		    public boolean onTouch(View v, MotionEvent event) {
-//		        if(event.getAction() == MotionEvent.ACTION_DOWN) {
-//		        	myRender.motion="LEFT";
-//		        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-//		        	myRender.motion="";
-//		        }
-//		        return false;   
-//		    }    
-//		});
-//		
-//		btnRight.setOnTouchListener(new View.OnTouchListener() {
-//		    @Override
-//		    public boolean onTouch(View v, MotionEvent event) {
-//		        if(event.getAction() == MotionEvent.ACTION_DOWN) {
-//		        	myRender.motion="RIGHT";
-//		        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-//		        	myRender.motion="";
-//		        }
-//		        return false;   
-//		    }    
-//		});
-		
+
 	}
 
 	@Override
@@ -109,7 +58,7 @@ public class MainActivity extends Activity {
 		new AlertDialog.Builder(MainActivity.this)
 		.setTitle("哈哈哈")
 		.setMessage("被擊中了")
-		.setPositiveButton("OK", new DialogInterface.OnClickListener(){
+		.setPositiveButton("結束", new DialogInterface.OnClickListener(){
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
@@ -118,13 +67,15 @@ public class MainActivity extends Activity {
 			}
 			
 		})
-		.setNegativeButton("HomePage", new DialogInterface.OnClickListener(){
+		.setNegativeButton("繼續", new DialogInterface.OnClickListener(){
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				// TODO Auto-generated method stub
 //				Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("http://android.gasolin.idv.tw/"));
-//				startActivity(intent);							
+//				startActivity(intent);			
+				MyRender.isDie=false;
+				MainActivity.this.onResume();
 			}
 			
 		})
@@ -164,7 +115,27 @@ public class MainActivity extends Activity {
 		if(ht1 != null)
 			ht1=null;
 	}
-	
-	
 
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		Log.d("ABC","onPause()...");
+	}
+
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		Log.d("ABC","onStart()...");
+	}
+
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		Log.d("ABC","onStop()...");
+	}
+	
+	
 }

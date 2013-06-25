@@ -15,15 +15,13 @@ public class MyRender implements Renderer{
 	private ArrayList<Bullet> bulletList;					//宣告預備子彈的list	
 	private double radius; 									//佈署子彈的圓之半徑(單位:像素)	
 	public static boolean isDie;							//是否被擊中
-	private double tmpAngle;								//子彈圓心角
 	private long timePrevious,timeNow,timeBetweenFrame;
 	private int count;
-
+	
 	 public MyRender() {
 		 Log.d("ABC","MyRender()...");
 		 square = new Square();	
-		 count=0;
-		 tmpAngle=0;
+		 count=0;		 
 		 isDie=false;			//初始、重置為false，因為MainActivity的onCreate()比onResume()早呼叫，
 	 }							//所以onResume()裡抓到的isDie就是重置過的
 
@@ -46,7 +44,9 @@ public class MyRender implements Renderer{
 			square.draw(gl);		  											//畫出方形
 			gl.glPopMatrix();													//回到上一個gl儲存點的狀態
 			  		  		  		  			
-			if((count % (Math.round(MyConstant.BULLET_TIME_INTERVAL*1000/timeBetweenFrame))) == 1){	//每隔幾個Frame準備一顆子彈
+			if((count % (Math.ceil(MyConstant.BULLET_TIME_INTERVAL*1000/timeBetweenFrame))) == 1 &&
+					bulletList.size() < MyConstant.BULLET_NUM){	//每隔幾個Frame準備一顆子彈
+				
 				prepareBullet();
 			}
 						
@@ -55,7 +55,7 @@ public class MyRender implements Renderer{
 					  deleteBullet(b,i);	//檢查是否需要消除子彈
 					  gl.glPushMatrix();			  
 					  gl.glTranslatef((float)(b.getBullet_positionX()), (float)(b.getBullet_positionY()), 0);	//平移
-					  gl.glScalef(0.0625f, 0.0625f, 0.0625f);			  
+					  gl.glScalef(0.0400f, 0.0400f, 0.0400f);			  
 					  b.draw(gl);			  					  
 					  gl.glPopMatrix();			  			  					  
 					  checkDie(b);										  
@@ -121,6 +121,7 @@ public class MyRender implements Renderer{
 	private void prepareBullet(){															
 		Bullet b=new Bullet();			  				  
 		double tmpRadius=(radius/ratio_pixToDist)/0.01;								//將半徑從像素轉換成座標上的單位				  
+		double tmpAngle=Math.ceil(Math.random()*360);								//子彈圓心角
 		b.setBullet_positionX(tmpRadius*Math.cos(tmpAngle*Math.PI/180));	//設定當前子彈初始x方向的位移
 		b.setBullet_positionY(tmpRadius*Math.sin(tmpAngle*Math.PI/180));	//設定當前子彈初始y方向的位移				  
 		b.setBullet_fly(MyConstant.BULLET_VELOCITY/(ratio_pixToDist*0.01));						 				  
@@ -133,9 +134,6 @@ public class MyRender implements Renderer{
 			tmpFlyAngle = 360 - tmpFlyAngle;			
 		b.setBulletFlyAngle(tmpFlyAngle);
 		bulletList.add(b);
-		tmpAngle=tmpAngle + 360/MyConstant.BULLET_NUM;
-		if(tmpAngle >= 360)
-			tmpAngle=0;	
 	}		
 	
 	//消除飛出圓周之外的子彈，傳入整數i表示當前bulletList的index值
@@ -154,11 +152,26 @@ public class MyRender implements Renderer{
 	
 	//測試是否被子彈擊中
 	private void checkDie(Bullet b){
-		if((b.getBullet_positionX() >= MyRender.player_positionX - 0.25 && b.getBullet_positionX() <= MyRender.player_positionX + 0.25) &&
-				(b.getBullet_positionY() >= MyRender.player_positionY - 0.25 && b.getBullet_positionY() <= MyRender.player_positionY + 0.25)){
-			isDie=true;
+//		if((b.getBullet_positionX() >= MyRender.player_positionX - 0.25 && b.getBullet_positionX() <= MyRender.player_positionX + 0.25) &&
+//				(b.getBullet_positionY() >= MyRender.player_positionY - 0.25 && b.getBullet_positionY() <= MyRender.player_positionY + 0.25)){
+//			isDie=true;
+//		}
+		ProbeCircle[] pCircleArray={new ProbeCircle(player_positionX + 0.25, player_positionY + 0.25, 0.177),	//偵測碰撞圓陣列
+				new ProbeCircle(player_positionX - 0.25, player_positionY + 0.25, 0.177),
+				new ProbeCircle(player_positionX - 0.25, player_positionY - 0.25, 0.177),
+				new ProbeCircle(player_positionX + 0.25, player_positionY - 0.25, 0.177)};	
+		
+		//偵測碰撞迴圈
+		for(int i=0;i<pCircleArray.length;i++){			
+				ProbeCircle tmpPC=pCircleArray[i];
+				double tmp_dx=b.getBullet_positionX() - tmpPC.getpCircle_positionX();	//子彈X-圓心X
+				double tmp_dy=b.getBullet_positionY() - tmpPC.getpCircle_positionY();	//子彈Y-圓心Y
+				double tmpDistance=Math.sqrt(tmp_dx*tmp_dx + tmp_dy*tmp_dy);	//子彈與圓心的距離
+				if(tmpDistance <= tmpPC.getR()){	//若距離小於半徑則isDie為true並跳出迴圈
+					isDie=true;
+					break;
+				}					
 		}
-	}		
-
-	
+	}	
+		
 }
