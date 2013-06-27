@@ -8,116 +8,141 @@ import java.nio.ShortBuffer;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLUtils;
 
 public class Square {
 
-	 // ÂIªº°}¦C
-	 private float vertices[] = { -1.0f, 1.0f, 0.0f, // 0, ¥ª¤W¨¤
-	   -1.0f, -1.0f, 0.0f, // 1, ¥ª¤U¨¤
-	   1.0f, -1.0f, 0.0f, // 2, ¥k¤U¨¤
-	   1.0f, 1.0f, 0.0f, // 3, ¥k¤W¨¤
+	 // é»çš„é™£åˆ—
+	 private float vertices[] = { -1.0f, 1.0f, 0.0f, // 0, å·¦ä¸Šè§’
+	   -1.0f, -1.0f, 0.0f, // 1, å·¦ä¸‹è§’
+	   1.0f, -1.0f, 0.0f, // 2, å³ä¸‹è§’
+	   1.0f, 1.0f, 0.0f, // 3, å³ä¸Šè§’
 	 };
 
-	 // ³s±µÂIªº¦¸§Ç
+	 // é€£æ¥é»çš„æ¬¡åº
 	 private short[] indices = { 0, 1, 2, 0, 2, 3 };
 	 
-	// ½è¦a§¤¼Ğ
-	 private float texture[] = { 0.0f, 0.0f, //
+	// è³ªåœ°åæ¨™
+	 private float[] textureCor = { 0.0f, 0.0f, //
 			   0.0f, 1.0f, //
 			   1.0f, 1.0f, //
 			   1.0f, 0.0f, //
 			 };
 
-	 // ÂIªº½w½Ä°Ï
+	 // é»çš„ç·©è¡å€
 	 private FloatBuffer vertexBuffer;
-	 // ¯Á¤Ş­È½w½Ä°Ï
+	 // ç´¢å¼•å€¼ç·©è¡å€
 	 private ShortBuffer indexBuffer;
-	// ½è¦a½w½Ä°Ï
+	// è³ªåœ°ç·©è¡å€
 	 private FloatBuffer textureBuffer;
 	 
 	 private Bitmap bitmap;
+	 private int texture;
 
 	 public Square() {
-	  // ¯BÂI¼Æ¬O4¦ì¤¸²Õ¦]¦¹»İ­n§âÂI°}¦Cªø«×­¼¥H4
+	  // æµ®é»æ•¸æ˜¯4ä½å…ƒçµ„å› æ­¤éœ€è¦æŠŠé»é™£åˆ—é•·åº¦ä¹˜ä»¥4
 	  ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
 	  vbb.order(ByteOrder.nativeOrder());
 	  vertexBuffer = vbb.asFloatBuffer();
 	  vertexBuffer.put(vertices);
 	  vertexBuffer.position(0);
 
-	  // µu¾ã¼Æ¬O2¦ì¤¸²Õ¦]¦¹»İ­n§âÂI°}¦Cªø«×­¼¥H2
+	  // çŸ­æ•´æ•¸æ˜¯2ä½å…ƒçµ„å› æ­¤éœ€è¦æŠŠé»é™£åˆ—é•·åº¦ä¹˜ä»¥2
 	  ByteBuffer ibb = ByteBuffer.allocateDirect(indices.length * 2);
 	  ibb.order(ByteOrder.nativeOrder());
 	  indexBuffer = ibb.asShortBuffer();
 	  indexBuffer.put(indices);
 	  indexBuffer.position(0);
 	  
-	  ByteBuffer byteBuf = ByteBuffer.allocateDirect(texture.length * 4);
+	  ByteBuffer byteBuf = ByteBuffer.allocateDirect(textureCor.length * 4);
 	  byteBuf.order(ByteOrder.nativeOrder());
 	  textureBuffer = byteBuf.asFloatBuffer();
-	  textureBuffer.put(texture);
+	  textureBuffer.put(textureCor);
 	  textureBuffer.position(0);
 	 }
 	 
 	 /**
-	  * µe¹Ï¨ç¦¡
+	  * ç•«åœ–å‡½å¼
 	  * 
 	  * @param gl
 	  */
-	 public void draw(GL10 gl) {
-	  // °f®ÉÄÁ
-	  gl.glFrontFace(GL10.GL_CCW);
-	  // ±Ò°ÊCULL_FACE
-	  gl.glEnable(GL10.GL_CULL_FACE);
-	  // §R°£¦hÁÜ§Îªº­I´º
-	  gl.glCullFace(GL10.GL_BACK);
-
-	  // ±Ò°ÊÂIªº½w½Ä°Ï
-	  gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-	  // «ü©w¦ì¸m©M¸ê®Æ®æ¦¡
-	  gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
-
+	public void draw(GL10 gl) {
+		// å¯ç”¨2Dçº¹ç†è´´å›¾
+	    gl.glEnable(GL10.GL_TEXTURE_2D);	
+		// é€†æ™‚é˜
+		gl.glFrontFace(GL10.GL_CCW);
+		// å•Ÿå‹•CULL_FACE
+		gl.glEnable(GL10.GL_CULL_FACE);
+		// åˆªé™¤å¤šé‚€å½¢çš„èƒŒæ™¯
+		gl.glCullFace(GL10.GL_BACK);
+		// å•Ÿå‹•é»çš„ç·©è¡å€
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		// ä½¿ç”¨UVåæ¨™
+		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+	
+		// æŒ‡å®šä½ç½®å’Œè³‡æ–™æ ¼å¼
+		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
+		// æŒ‡å®šè³ªåœ°ç·©è¡å€
+		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
+		//è¨­å®šç•¶å‰é¡è‰²ç‚ºé€æ˜
+		gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	  
-	// «Ø¥ß½è¦a°}¦C
-	  int[] textures = new int[1];
-	  // §i¶DOpenGL²£¥Í²Ä´X­Ó½è¦a
-	  gl.glGenTextures(1, textures, 0);
+		// æ‰§è¡Œçº¹ç†è´´å›¾
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, texture);
+		// ä»¥ä¸‰é»åŠƒå‡ºä¸‰è§’å½¢
+		gl.glDrawElements(GL10.GL_TRIANGLES, indexBuffer.remaining(),
+			  GL10.GL_UNSIGNED_SHORT, indexBuffer);
 
-	  // «ü©w­n¥Î¨º¤@½è¦a
-	  gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
-
-	  // ¸ü¤J½è¦a¦ì¤¸¹Ï
-	  GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-
-	  // ±Ò°Ê½è¦a¥\¯à
-	  gl.glEnable(GL10.GL_TEXTURE_2D);
-
-	  // ¨Ï¥ÎUV§¤¼Ğ
-	  gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-
-	  // «ü©w½è¦a½w½Ä°Ï
-	  gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);  // ¥H¤TÂI¹º¥X
-	  
-	  
-	  // ¥H¤TÂI¹º¥X¤T¨¤§Î
-	  gl.glDrawElements(GL10.GL_TRIANGLES, indices.length,
-	    GL10.GL_UNSIGNED_SHORT, indexBuffer);
-
-	  // °£¯àÂIªº½w½Ä°Ï
-	  gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
-	  // °£¯àCULL_FACE
-	  gl.glDisable(GL10.GL_CULL_FACE);
-	  
-	  
-	// °£¯àUV§¤¼Ğ
-	  gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-
-	  // °£¯à½è¦aªº¨Ï¥Î
-	  gl.glDisable(GL10.GL_TEXTURE_2D); }
+		// é™¤èƒ½é»çš„ç·©è¡å€
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		// é™¤èƒ½CULL_FACE
+		gl.glDisable(GL10.GL_CULL_FACE);
+		// ç¦ç”¨é¡¶ç‚¹ã€çº¹ç†åº§æ ‡æ•°ç»„
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+		// åœç”¨2Dçº¹ç†è´´å›¾
+		gl.glDisable(GL10.GL_TEXTURE_2D);
+	 }
 
 	 public void setBitmap(Bitmap bitmap) {
 	  // TODO Auto-generated method stub
-	  this.bitmap = bitmap;
+		 this.bitmap = bitmap;
 	 }
+	 
+	 public void loadTexture(GL10 gl)
+	    {
+	        Bitmap bitmap = null;
+	        try
+	        {
+	            // åŠ è½½ä½å›¾
+	            bitmap=this.bitmap;
+	            int[] textures = new int[1];
+	            // æŒ‡å®šç”ŸæˆNä¸ªçº¹ç†ï¼ˆç¬¬ä¸€ä¸ªå‚æ•°æŒ‡å®šç”Ÿæˆ1ä¸ªçº¹ç†ï¼‰ï¼Œ
+	            // texturesæ•°ç»„å°†è´Ÿè´£å­˜å‚¨æ‰€æœ‰çº¹ç†çš„ä»£å·ã€‚
+	            gl.glGenTextures(1, textures, 0);
+	            // è·å–texturesçº¹ç†æ•°ç»„ä¸­çš„ç¬¬ä¸€ä¸ªçº¹ç†
+	            texture = textures[0];
+	            // é€šçŸ¥OpenGLå°†textureçº¹ç†ç»‘å®šåˆ°GL10.GL_TEXTURE_2Dç›®æ ‡ä¸­
+	            gl.glBindTexture(GL10.GL_TEXTURE_2D, texture);
+	            // è®¾ç½®çº¹ç†è¢«ç¼©å°ï¼ˆè·ç¦»è§†ç‚¹å¾ˆè¿œæ—¶è¢«ç¼©å°ï¼‰æ—¶å€™çš„æ»¤æ³¢æ–¹å¼
+	            gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+	                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_NEAREST);
+	            // è®¾ç½®çº¹ç†è¢«æ”¾å¤§ï¼ˆè·ç¦»è§†ç‚¹å¾ˆè¿‘æ—¶è¢«æ–¹æ³•ï¼‰æ—¶å€™çš„æ»¤æ³¢æ–¹å¼
+	            gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+	                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+	            // è®¾ç½®åœ¨æ¨ªå‘ã€çºµå‘ä¸Šéƒ½æ˜¯å¹³é“ºçº¹ç†
+	            gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
+	                GL10.GL_REPEAT);
+	            gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
+	                GL10.GL_REPEAT);
+	            // åŠ è½½ä½å›¾ç”Ÿæˆçº¹ç†
+	            GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);       
+	        }finally{
+	            // ç”Ÿæˆçº¹ç†ä¹‹åï¼Œå›æ”¶ä½å›¾
+	            if (bitmap != null)
+	                bitmap.recycle();
+	        }
+	    }
+
 }

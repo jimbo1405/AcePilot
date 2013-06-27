@@ -11,12 +11,12 @@ import android.util.Log;
 
 public class MyRender implements Renderer{	
 	public static float player_positionX,player_positionY;	//	
-	public static float x_screen=0,y_screen=0;				//µøµ¡ªº¼e»P°ª	
-	public static float ratio_pixToDist;					//¤ñ­È¡A®y¼Ğ¤W¨C³æ¦ì¬Û·í©ó¦h¤Ö¹³¯À
+	public static float x_screen=0,y_screen=0;				//è¦–çª—çš„å¯¬èˆ‡é«˜	
+	public static float ratio_pixToDist;					//æ¯”å€¼ï¼Œåº§æ¨™ä¸Šæ¯å–®ä½ç›¸ç•¶æ–¼å¤šå°‘åƒç´ 
 	private Square square;
-	private ArrayList<Bullet> bulletList;					//«Å§i¹w³Æ¤l¼uªºlist	
-	private double radius; 									//§G¸p¤l¼uªº¶ê¤§¥b®|(³æ¦ì:¹³¯À)	
-	public static boolean isDie;							//¬O§_³QÀ»¤¤
+	private ArrayList<Bullet> bulletList;					//å®£å‘Šé å‚™å­å½ˆçš„list	
+	private double radius; 									//ä½ˆç½²å­å½ˆçš„åœ“ä¹‹åŠå¾‘(å–®ä½:åƒç´ )	
+	public static boolean isDie;							//æ˜¯å¦è¢«æ“Šä¸­
 	private long timePrevious,timeNow,timeBetweenFrame;
 	private int count;
 	
@@ -24,78 +24,78 @@ public class MyRender implements Renderer{
 		 Log.d("ABC","MyRender()...");
 		 square = new Square();	
 		 count=0;		 
-		 isDie=false;			//ªì©l¡B­«¸m¬°false¡A¦]¬°MainActivityªºonCreate()¤ñonResume()¦­©I¥s¡A
-	 }							//©Ò¥HonResume()¸Ì§ì¨ìªºisDie´N¬O­«¸m¹Lªº
+		 isDie=false;			//åˆå§‹ã€é‡ç½®ç‚ºfalseï¼Œå› ç‚ºMainActivityçš„onCreate()æ¯”onResume()æ—©å‘¼å«ï¼Œ
+	 }							//æ‰€ä»¥onResume()è£¡æŠ“åˆ°çš„isDieå°±æ˜¯é‡ç½®éçš„
 
 	
 	@Override
-	public void onDrawFrame(GL10 gl) {		
-		timeNow=System.currentTimeMillis();		
+	public void onDrawFrame(GL10 gl) {				
+		timeNow=System.currentTimeMillis();
+		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	//æ¸…é™¤è¢å¹•å’Œæ·±åº¦ç·©è¡å€
 		if(count == 0){			  
-			gl.glLoadIdentity();			//±N­ìÂI²¾¦Ü¿Ã¹õ¤¤¤ß		
-			gl.glTranslatef(0, 0,-10);		//ª«Åé©¹¿Ã¹õ¤º²¾°Ê10³æ¦ì¡A±N´ºª«»PµøÂI¤ÀÂ÷
-			player_positionX=0;				//Ã¸»s²Ä¤@­Óframe®É¡Aª±®a­n¥X²{¦b¿Ã¹õ¤¤¥¡
+			gl.glLoadIdentity();			//å°‡åŸé»ç§»è‡³è¢å¹•ä¸­å¿ƒ		
+			gl.glTranslatef(0, 0,-10);		//ç‰©é«”å¾€è¢å¹•å…§ç§»å‹•10å–®ä½ï¼Œå°‡æ™¯ç‰©èˆ‡è¦–é»åˆ†é›¢
+			player_positionX=0;				//ç¹ªè£½ç¬¬ä¸€å€‹frameæ™‚ï¼Œç©å®¶è¦å‡ºç¾åœ¨è¢å¹•ä¸­å¤®
 			player_positionY=0;
 		}
 		if(count > 0){
-			timeBetweenFrame=timeNow-timePrevious;	//ºâ¥X´X·L¬íÃ¸»s¤@­ÓFrame
-			gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	//²M°£¿Ã¹õ©M²`«×½w½Ä°Ï			  		  						 
-			gl.glPushMatrix();													//Àx¦s¥Ø«eglª¬ºA		 
+			timeBetweenFrame=timeNow-timePrevious;	//ç®—å‡ºå¹¾å¾®ç§’ç¹ªè£½ä¸€å€‹Frame			  		  						 
+			gl.glPushMatrix();													//å„²å­˜ç›®å‰glç‹€æ…‹		 
 			gl.glTranslatef(player_positionX, player_positionY, 0);
-			gl.glScalef(0.25f, 0.25f, 0.25f);									//½Õ¾ã¤è§Îªº¤j¤p
-			square.draw(gl);		  											//µe¥X¤è§Î
-			gl.glPopMatrix();													//¦^¨ì¤W¤@­ÓglÀx¦sÂIªºª¬ºA
+			gl.glScalef(0.25f, 0.25f, 0.25f);									//èª¿æ•´æ–¹å½¢çš„å¤§å°
+			gl.glRotatef(-45, 0, 0, 1);
+			square.draw(gl);		  											//ç•«å‡ºæ–¹å½¢
+			gl.glPopMatrix();													//å›åˆ°ä¸Šä¸€å€‹glå„²å­˜é»çš„ç‹€æ…‹
 			  		  		  		  			
-			if((count % (Math.ceil(MyConstant.BULLET_TIME_INTERVAL*1000/timeBetweenFrame))) == 1 &&
-					bulletList.size() < MyConstant.BULLET_NUM){	//¨C¹j´X­ÓFrame·Ç³Æ¤@Áû¤l¼u
-				
+			if((count % (Math.ceil(MyConstant.BULLET_TIME_INTERVAL*1000/timeBetweenFrame))) == 1 &&	//æ¯éš”å¹¾å€‹Frameæº–å‚™ä¸€é¡†å­å½ˆ
+					bulletList.size() < MyConstant.BULLET_NUM){															
 				prepareBullet();
 			}
 						
 			for(int i=0;i<bulletList.size();i++){														  						  
 					  Bullet b=bulletList.get(i);
-					  deleteBullet(b,i);	//ÀË¬d¬O§_»İ­n®ø°£¤l¼u
+					  deleteBullet(b,i);	//æª¢æŸ¥æ˜¯å¦éœ€è¦æ¶ˆé™¤å­å½ˆ
 					  gl.glPushMatrix();			  
-					  gl.glTranslatef((float)(b.getBullet_positionX()), (float)(b.getBullet_positionY()), 0);	//¥­²¾
+					  gl.glTranslatef((float)(b.getBullet_positionX()), (float)(b.getBullet_positionY()), 0);	//å¹³ç§»
 					  gl.glScalef(0.0400f, 0.0400f, 0.0400f);			  
 					  b.draw(gl);			  					  
 					  gl.glPopMatrix();			  			  					  
 					  checkDie(b);										  
 					  b.setBullet_positionX(b.getBullet_positionX() - 
-							  b.getBullet_fly()*Math.cos(b.getBulletFlyAngle()*Math.PI/180)*timeBetweenFrame/1000);	 	//³]©w·í«e¤l¼u¤U¤@­Óframe®Éx¤è¦Vªº¦ì²¾
+							  b.getBullet_fly()*Math.cos(b.getBulletFlyAngle()*Math.PI/180)*timeBetweenFrame/1000);	 	//è¨­å®šç•¶å‰å­å½ˆä¸‹ä¸€å€‹frameæ™‚xæ–¹å‘çš„ä½ç§»
 					  b.setBullet_positionY(b.getBullet_positionY() - 
-							  b.getBullet_fly()*Math.sin(b.getBulletFlyAngle()*Math.PI/180)*timeBetweenFrame/1000);		//³]©w·í«e¤l¼u¤U¤@­Óframe®Éy¤è¦Vªº¦ì²¾
-					  b.setBullet_totalFly(b.getBullet_totalFly() + b.getBullet_fly()*timeBetweenFrame/1000);			//³]©w·í«e¤l¼u­¸¦æÁ`¦ì²¾
+							  b.getBullet_fly()*Math.sin(b.getBulletFlyAngle()*Math.PI/180)*timeBetweenFrame/1000);		//è¨­å®šç•¶å‰å­å½ˆä¸‹ä¸€å€‹frameæ™‚yæ–¹å‘çš„ä½ç§»
+					  b.setBullet_totalFly(b.getBullet_totalFly() + b.getBullet_fly()*timeBetweenFrame/1000);			//è¨­å®šç•¶å‰å­å½ˆé£›è¡Œç¸½ä½ç§»
 			}			 		
 		}
 		timePrevious=timeNow;
 		count++;
+		gl.glFinish();
 	}
 
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		// TODO Auto-generated method stub
 		Log.d("ABC","onSurfaceChanged(GL10 gl, int width, int height)...");
-		// ³]©w·sµø°ìµøµ¡ªº¤j¤p
+		// è¨­å®šæ–°è¦–åŸŸè¦–çª—çš„å¤§å°
 		  gl.glViewport(0, 0, width, height);
-		  // ¿ï¾Ü§ë®gªº°}¦C¼Ò¦¡
+		  // é¸æ“‡æŠ•å°„çš„é™£åˆ—æ¨¡å¼
 		  gl.glMatrixMode(GL10.GL_PROJECTION);
-		  // ­«³]§ë®g°}
+		  // é‡è¨­æŠ•å°„é™£
 		  gl.glLoadIdentity();
-		  // ­pºâµøµ¡ªº¼e°ª¤ñ²v
+		  // è¨ˆç®—è¦–çª—çš„å¯¬é«˜æ¯”ç‡
 		  GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f,
-		    100.0f);
-		  
+		    100.0f);		  
 		  x_screen=width;
 		  y_screen=height;
-		  ratio_pixToDist=(float)(height/(2*Math.tan(22.5*Math.PI/180)*0.1));	//¿Ã¹õ¤Wªº1³æ¦ì¬Û·í©ó¦h¤Ö¹³¯À
-		  radius=Math.sqrt(width*width + height*height);					//³]©w§G¸p¤l¼uªº¶ê¤§¥b®|=µe­±ªº±×Ãäªø
+		  ratio_pixToDist=(float)(height/(2*Math.tan(22.5*Math.PI/180)*0.1));	//è¢å¹•ä¸Šçš„1å–®ä½ç›¸ç•¶æ–¼å¤šå°‘åƒç´ 
+		  radius=Math.sqrt(width*width + height*height);					//è¨­å®šä½ˆç½²å­å½ˆçš„åœ“ä¹‹åŠå¾‘=ç•«é¢çš„æ–œé‚Šé•·
 		  Log.d("Wang","ratio_pixToDist="+ ratio_pixToDist);
 		  Log.d("Wang","x_screen="+x_screen+" y_screen="+y_screen);
 		  Log.d("Wang","radius="+ radius);		  
-		  // ¿ï¾ÜMODELVIEW°}¦C
+		  // é¸æ“‡MODELVIEWé™£åˆ—
 		  gl.glMatrixMode(GL10.GL_MODELVIEW);
-		  // ­«³]MODELVIEW°}¦C
+		  // é‡è¨­MODELVIEWé™£åˆ—
 		  gl.glLoadIdentity(); 
 	}
 
@@ -103,36 +103,36 @@ public class MyRender implements Renderer{
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		// TODO Auto-generated method stub
 		Log.d("ABC","onSurfaceCreated(GL10 gl, EGLConfig config)...");
-		// ³]©w­I´ºÃC¦â¬°¶Â¦â, ®æ¦¡¬ORGBA
-		  gl.glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
-		  // ³]©w¬yºZªº³±¼v¼Ò¦¡
-		  gl.glShadeModel(GL10.GL_SMOOTH);
-		  // ²`«×½w°Ïªº³]©w
-		  gl.glClearDepthf(1.0f);
-		  // ±Ò°Ê²`«×ªº´ú¸Õ
-		  gl.glEnable(GL10.GL_DEPTH_TEST);
-		  // GL_LEQUAL²`«×¨ç¦¡´ú¸Õ
-		  gl.glDepthFunc(GL10.GL_LEQUAL);
-		  // ³]©w«Ü¦nªº¨¤«×­pºâ¼Ò¦¡
-		  gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
-		 		  		  
-		  bulletList=new ArrayList<Bullet>();
+        // å…³é—­æŠ—æŠ–åŠ¨
+        gl.glDisable(GL10.GL_DITHER);
+        // è®¾ç½®ç³»ç»Ÿå¯¹é€è§†è¿›è¡Œä¿®æ­£
+		gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
+		// è¨­å®šèƒŒæ™¯é¡è‰²ç‚ºé»‘è‰², æ ¼å¼æ˜¯RGBA
+		gl.glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
+		// è¨­å®šæµæš¢çš„é™°å½±æ¨¡å¼
+		gl.glShadeModel(GL10.GL_SMOOTH);
+		// å•Ÿå‹•æ·±åº¦çš„æ¸¬è©¦
+		gl.glEnable(GL10.GL_DEPTH_TEST);
+		// GL_LEQUALæ·±åº¦å‡½å¼æ¸¬è©¦
+		gl.glDepthFunc(GL10.GL_LEQUAL);
+		//æ–¹å½¢è¼‰å…¥æè³ª
+		square.loadTexture(gl);
+		bulletList=new ArrayList<Bullet>();
 	}
 	
 	 public void setBitmap(Bitmap bitmap) {
-		  // TODO Auto-generated method stub
-		  square.setBitmap(bitmap);
-		 }
+		 square.setBitmap(bitmap);
+	 }
 	
-	//·Ç³Æ¤l¼u
+	//æº–å‚™å­å½ˆ
 	private void prepareBullet(){															
 		Bullet b=new Bullet();			  				  
-		double tmpRadius=(radius/ratio_pixToDist)/0.01;								//±N¥b®|±q¹³¯ÀÂà´«¦¨®y¼Ğ¤Wªº³æ¦ì				  
-		double tmpAngle=Math.ceil(Math.random()*360);								//¤l¼u¶ê¤ß¨¤
-		b.setBullet_positionX(tmpRadius*Math.cos(tmpAngle*Math.PI/180));	//³]©w·í«e¤l¼uªì©lx¤è¦Vªº¦ì²¾
-		b.setBullet_positionY(tmpRadius*Math.sin(tmpAngle*Math.PI/180));	//³]©w·í«e¤l¼uªì©ly¤è¦Vªº¦ì²¾				  
+		double tmpRadius=(radius/ratio_pixToDist)/0.01;								//å°‡åŠå¾‘å¾åƒç´ è½‰æ›æˆåº§æ¨™ä¸Šçš„å–®ä½				  
+		double tmpAngle=Math.ceil(Math.random()*360);								//å­å½ˆåœ“å¿ƒè§’
+		b.setBullet_positionX(tmpRadius*Math.cos(tmpAngle*Math.PI/180));	//è¨­å®šç•¶å‰å­å½ˆåˆå§‹xæ–¹å‘çš„ä½ç§»
+		b.setBullet_positionY(tmpRadius*Math.sin(tmpAngle*Math.PI/180));	//è¨­å®šç•¶å‰å­å½ˆåˆå§‹yæ–¹å‘çš„ä½ç§»				  
 		b.setBullet_fly(MyConstant.BULLET_VELOCITY/(ratio_pixToDist*0.01));						 				  
-		b.setBulletAngle(tmpAngle);											//³]©w¤l¼u¶ê¤ß¨¤				  																
+		b.setBulletAngle(tmpAngle);											//è¨­å®šå­å½ˆåœ“å¿ƒè§’				  																
 		double vectorX=b.getBullet_positionX()-player_positionX;
 		double vectorY=b.getBullet_positionY()-player_positionY;
 		double tmpCos=(vectorX)/(Math.sqrt(vectorX*vectorX + vectorY*vectorY));			  		
@@ -143,12 +143,12 @@ public class MyRender implements Renderer{
 		bulletList.add(b);
 	}		
 	
-	//®ø°£­¸¥X¶ê©P¤§¥~ªº¤l¼u¡A¶Ç¤J¾ã¼Æiªí¥Ü·í«ebulletListªºindex­È
+	//æ¶ˆé™¤é£›å‡ºåœ“å‘¨ä¹‹å¤–çš„å­å½ˆï¼Œå‚³å…¥æ•´æ•¸iè¡¨ç¤ºç•¶å‰bulletListçš„indexå€¼
 	private void deleteBullet(Bullet b,int i){
-		double tmpFly=b.getBullet_totalFly();			//·í«e¤l¼uªº­¸¦æÁ`¦ì²¾
-		double tmpRadius=(radius/ratio_pixToDist)/0.01;	//±N¥b®|±q¹³¯ÀÂà´«¦¨®y¼Ğ¤Wªº³æ¦ì
+		double tmpFly=b.getBullet_totalFly();			//ç•¶å‰å­å½ˆçš„é£›è¡Œç¸½ä½ç§»
+		double tmpRadius=(radius/ratio_pixToDist)/0.01;	//å°‡åŠå¾‘å¾åƒç´ è½‰æ›æˆåº§æ¨™ä¸Šçš„å–®ä½
 		
-		//if§PÂ_¤l¼u¥²¶·¦b¿Ã¹õ¥~ ¥B ¦Ü¤Ö­¸¤F¥b®|ªø«×ªº¶ZÂ÷¤~¯à±qlist§R±¼
+		//ifåˆ¤æ–·å­å½ˆå¿…é ˆåœ¨è¢å¹•å¤– ä¸” è‡³å°‘é£›äº†åŠå¾‘é•·åº¦çš„è·é›¢æ‰èƒ½å¾liståˆªæ‰
 		if(Math.abs(b.getBullet_positionX()) > (0.5*x_screen/ratio_pixToDist)/0.01 || 
 				Math.abs(b.getBullet_positionY()) > (0.5*y_screen/ratio_pixToDist)/0.01){
 			if(tmpFly > tmpRadius)
@@ -157,24 +157,24 @@ public class MyRender implements Renderer{
 
 	}
 	
-	//´ú¸Õ¬O§_³Q¤l¼uÀ»¤¤
+	//æ¸¬è©¦æ˜¯å¦è¢«å­å½ˆæ“Šä¸­
 	private void checkDie(Bullet b){
 //		if((b.getBullet_positionX() >= MyRender.player_positionX - 0.25 && b.getBullet_positionX() <= MyRender.player_positionX + 0.25) &&
 //				(b.getBullet_positionY() >= MyRender.player_positionY - 0.25 && b.getBullet_positionY() <= MyRender.player_positionY + 0.25)){
 //			isDie=true;
 //		}
-		ProbeCircle[] pCircleArray={new ProbeCircle(player_positionX + 0.25, player_positionY + 0.25, 0.177),	//°»´ú¸I¼²¶ê°}¦C
+		ProbeCircle[] pCircleArray={new ProbeCircle(player_positionX + 0.25, player_positionY + 0.25, 0.177),	//åµæ¸¬ç¢°æ’åœ“é™£åˆ—
 				new ProbeCircle(player_positionX - 0.25, player_positionY + 0.25, 0.177),
 				new ProbeCircle(player_positionX - 0.25, player_positionY - 0.25, 0.177),
 				new ProbeCircle(player_positionX + 0.25, player_positionY - 0.25, 0.177)};	
 		
-		//°»´ú¸I¼²°j°é
+		//åµæ¸¬ç¢°æ’è¿´åœˆ
 		for(int i=0;i<pCircleArray.length;i++){			
 				ProbeCircle tmpPC=pCircleArray[i];
-				double tmp_dx=b.getBullet_positionX() - tmpPC.getpCircle_positionX();	//¤l¼uX-¶ê¤ßX
-				double tmp_dy=b.getBullet_positionY() - tmpPC.getpCircle_positionY();	//¤l¼uY-¶ê¤ßY
-				double tmpDistance=Math.sqrt(tmp_dx*tmp_dx + tmp_dy*tmp_dy);	//¤l¼u»P¶ê¤ßªº¶ZÂ÷
-				if(tmpDistance <= tmpPC.getR()){	//­Y¶ZÂ÷¤p©ó¥b®|«hisDie¬°true¨Ã¸õ¥X°j°é
+				double tmp_dx=b.getBullet_positionX() - tmpPC.getpCircle_positionX();	//å­å½ˆX-åœ“å¿ƒX
+				double tmp_dy=b.getBullet_positionY() - tmpPC.getpCircle_positionY();	//å­å½ˆY-åœ“å¿ƒY
+				double tmpDistance=Math.sqrt(tmp_dx*tmp_dx + tmp_dy*tmp_dy);	//å­å½ˆèˆ‡åœ“å¿ƒçš„è·é›¢
+				if(tmpDistance <= tmpPC.getR()){	//è‹¥è·é›¢å°æ–¼åŠå¾‘å‰‡isDieç‚ºtrueä¸¦è·³å‡ºè¿´åœˆ
 					isDie=true;
 					break;
 				}					

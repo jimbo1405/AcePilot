@@ -35,18 +35,13 @@ public class Circle
     }  
       
     public void draw(GL10 gl)  
-    {  
-        //重置投影矩陣 
-//        gl.glLoadIdentity();  
-        // 移動操作，移入屏幕(Z軸)5個像素, x, y , z  
-//        gl.glTranslatef(0.0f, 0.0f, -5.0f);  
-          
+    {            
         //旋轉, angle, x, y , z  
         gl.glRotatef(yAngle, 0.0f, 1.0f, 0.0f);  
         gl.glRotatef(zAngle, 1.0f, 0.0f, 0.0f);  
           
         // 設置當前色為紅色, R, G, B, Alpha  
-        gl.glColor4f(1.0f, 0.1f, 0.1f, 1.0f);  
+        gl.glColor4f(1.0f, 0.1f, 0.1f, 1f);  
           
         //設置頂點類型為浮點座標    
         gl.glVertexPointer(2, GL10.GL_FLOAT, 0, verBuffer);  
@@ -56,7 +51,6 @@ public class Circle
           
         //向OGL發送實際畫圖指令  
         gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, 360);  
-  
         //畫圖結束  
 //        gl.glFinish();  							//不加這行，因為會造成cpu block住
     }  
