@@ -7,6 +7,9 @@ import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.graphics.Bitmap;
+import android.opengl.GLUtils;
+
 public class Square {
 
 	 // 點的陣列
@@ -18,12 +21,22 @@ public class Square {
 
 	 // 連接點的次序
 	 private short[] indices = { 0, 1, 2, 0, 2, 3 };
+	 
+	// 質地坐標
+	 private float texture[] = { 0.0f, 0.0f, //
+			   0.0f, 1.0f, //
+			   1.0f, 1.0f, //
+			   1.0f, 0.0f, //
+			 };
 
 	 // 點的緩衝區
 	 private FloatBuffer vertexBuffer;
-
 	 // 索引值緩衝區
 	 private ShortBuffer indexBuffer;
+	// 質地緩衝區
+	 private FloatBuffer textureBuffer;
+	 
+	 private Bitmap bitmap;
 
 	 public Square() {
 	  // 浮點數是4位元組因此需要把點陣列長度乘以4
@@ -39,6 +52,12 @@ public class Square {
 	  indexBuffer = ibb.asShortBuffer();
 	  indexBuffer.put(indices);
 	  indexBuffer.position(0);
+	  
+	  ByteBuffer byteBuf = ByteBuffer.allocateDirect(texture.length * 4);
+	  byteBuf.order(ByteOrder.nativeOrder());
+	  textureBuffer = byteBuf.asFloatBuffer();
+	  textureBuffer.put(texture);
+	  textureBuffer.position(0);
 	 }
 	 
 	 /**
@@ -59,6 +78,28 @@ public class Square {
 	  // 指定位置和資料格式
 	  gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
 
+	  
+	// 建立質地陣列
+	  int[] textures = new int[1];
+	  // 告訴OpenGL產生第幾個質地
+	  gl.glGenTextures(1, textures, 0);
+
+	  // 指定要用那一質地
+	  gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
+
+	  // 載入質地位元圖
+	  GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+
+	  // 啟動質地功能
+	  gl.glEnable(GL10.GL_TEXTURE_2D);
+
+	  // 使用UV坐標
+	  gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+
+	  // 指定質地緩衝區
+	  gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);  // 以三點劃出
+	  
+	  
 	  // 以三點劃出三角形
 	  gl.glDrawElements(GL10.GL_TRIANGLES, indices.length,
 	    GL10.GL_UNSIGNED_SHORT, indexBuffer);
@@ -67,5 +108,16 @@ public class Square {
 	  gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 	  // 除能CULL_FACE
 	  gl.glDisable(GL10.GL_CULL_FACE);
+	  
+	  
+	// 除能UV坐標
+	  gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+
+	  // 除能質地的使用
+	  gl.glDisable(GL10.GL_TEXTURE_2D); }
+
+	 public void setBitmap(Bitmap bitmap) {
+	  // TODO Auto-generated method stub
+	  this.bitmap = bitmap;
 	 }
 }

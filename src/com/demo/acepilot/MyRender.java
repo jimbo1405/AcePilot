@@ -3,6 +3,8 @@ package com.demo.acepilot;
 import java.util.ArrayList;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView.Renderer;
 import android.opengl.GLU;
 import android.util.Log;
@@ -113,9 +115,14 @@ public class MyRender implements Renderer{
 		  gl.glDepthFunc(GL10.GL_LEQUAL);
 		  // 設定很好的角度計算模式
 		  gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
-		  		  
+		 		  		  
 		  bulletList=new ArrayList<Bullet>();
 	}
+	
+	 public void setBitmap(Bitmap bitmap) {
+		  // TODO Auto-generated method stub
+		  square.setBitmap(bitmap);
+		 }
 	
 	//準備子彈
 	private void prepareBullet(){															

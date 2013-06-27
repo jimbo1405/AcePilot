@@ -9,6 +9,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -21,7 +23,8 @@ import android.widget.FrameLayout;
 public class MainActivity extends Activity {
 
 	private Button btnUp,btnDown,btnLeft,btnRight;
-	private MyGlSurfaceView myGlSurfaceView; 	 
+	private MyGlSurfaceView myGlSurfaceView;
+	private MyRender myRender; 
 	private FrameLayout gl_layout;
 	private Handler thread_Handler;	//宣告管理執行緒的handler
 	private HandlerThread ht1;		//宣告執行緒
@@ -38,7 +41,10 @@ public class MainActivity extends Activity {
 		
 		gl_layout=(FrameLayout)findViewById(R.id.gl_layout);	//find出frameLayout
 		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//建立MyGlSurfaceView的物件
-		myGlSurfaceView.setRenderer(new MyRender());	//設定render
+		myRender=new MyRender();
+		Bitmap bitmap=BitmapFactory.decodeResource(this.getResources(), R.drawable.su_30_flanker);
+		myRender.setBitmap(bitmap);
+		myGlSurfaceView.setRenderer(myRender);	//設定render
 		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout		
 	}
 	
