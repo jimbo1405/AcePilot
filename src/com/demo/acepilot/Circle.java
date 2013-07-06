@@ -9,7 +9,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class Circle  
 {  
     private float[] vertices = new float[720];  
-    private FloatBuffer verBuffer ;  
+    private FloatBuffer verBuffer;  
     private float yAngle;  
     private float zAngle;  
     public Circle()  
@@ -37,22 +37,20 @@ public class Circle
     public void draw(GL10 gl)  
     {            
         //旋轉, angle, x, y , z  
-        gl.glRotatef(yAngle, 0.0f, 1.0f, 0.0f);  
-        gl.glRotatef(zAngle, 1.0f, 0.0f, 0.0f);  
-          
+//        gl.glRotatef(yAngle, 0.0f, 1.0f, 0.0f);  
+//        gl.glRotatef(zAngle, 1.0f, 0.0f, 0.0f);            
         // 設置當前色為紅色, R, G, B, Alpha  
-        gl.glColor4f(1.0f, 0.1f, 0.1f, 1f);  
-          
-        //設置頂點類型為浮點座標    
-        gl.glVertexPointer(2, GL10.GL_FLOAT, 0, verBuffer);  
-  
+//      gl.glColor4f(1.0f, 0.1f, 0.1f, 1f);          
         //打開頂點數組  
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);  
-          
+        //設置頂點類型為浮點座標    
+        gl.glVertexPointer(2, GL10.GL_FLOAT, 0, verBuffer);          
         //向OGL發送實際畫圖指令  
         gl.glDrawArrays(GL10.GL_TRIANGLE_FAN, 0, 360);  
+		// 除能點的緩衝區
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);        
         //畫圖結束  
-//        gl.glFinish();  							//不加這行，因為會造成cpu block住
+//      gl.glFinish();  							//不加這行，因為會造成cpu block住
     }  
   
     public void setyAngle(float yAngle)  

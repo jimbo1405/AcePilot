@@ -13,7 +13,7 @@ public class MyGlSurfaceView extends GLSurfaceView{
 		super(context);		
 		Log.d("Wang","glSurfaceView constructor...");
 	}
-
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub

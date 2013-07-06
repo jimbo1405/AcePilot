@@ -10,6 +10,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLUtils;
+import android.util.Log;
 
 public class Square {
 
@@ -37,7 +38,7 @@ public class Square {
 	// 質地緩衝區
 	 private FloatBuffer textureBuffer;
 	 
-	 private Bitmap bitmap;
+	 private static Bitmap bitmap;
 	 private int texture;
 
 	 public Square() {
@@ -105,18 +106,17 @@ public class Square {
 		gl.glDisable(GL10.GL_TEXTURE_2D);
 	 }
 
-	 public void setBitmap(Bitmap bitmap) {
-	  // TODO Auto-generated method stub
+	 public void setBitmap(Bitmap bitmap) {	  
 		 this.bitmap = bitmap;
 	 }
 	 
 	 public void loadTexture(GL10 gl)
 	    {
-	        Bitmap bitmap = null;
+	        Bitmap tmpBitmap = null;
 	        try
 	        {
 	            // 加载位图
-	            bitmap=this.bitmap;
+	            tmpBitmap=this.bitmap;
 	            int[] textures = new int[1];
 	            // 指定生成N个纹理（第一个参数指定生成1个纹理），
 	            // textures数组将负责存储所有纹理的代号。
@@ -137,11 +137,15 @@ public class Square {
 	            gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
 	                GL10.GL_REPEAT);
 	            // 加载位图生成纹理
-	            GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);       
+	            GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, tmpBitmap, 0);       
+	        }catch(Exception e){
+	        	Log.d("ABC",e.getStackTrace()+" "+e.getMessage());
 	        }finally{
 	            // 生成纹理之后，回收位图
-	            if (bitmap != null)
-	                bitmap.recycle();
+//	            if (tmpBitmap != null){
+//	                tmpBitmap.recycle();
+//	                System.gc();
+//	            }    
 	        }
 	    }
 

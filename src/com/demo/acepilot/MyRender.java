@@ -14,6 +14,7 @@ public class MyRender implements Renderer{
 	public static float x_screen=0,y_screen=0;				//視窗的寬與高	
 	public static float ratio_pixToDist;					//比值，座標上每單位相當於多少像素
 	private Square square;
+	private Bullet bullet;
 	private ArrayList<Bullet> bulletList;					//宣告預備子彈的list	
 	private double radius; 									//佈署子彈的圓之半徑(單位:像素)	
 	public static boolean isDie;							//是否被擊中
@@ -22,19 +23,21 @@ public class MyRender implements Renderer{
 	
 	 public MyRender() {
 		 Log.d("ABC","MyRender()...");
-		 square = new Square();	
+		 square = new Square();
+		 bullet = new Bullet();
 		 count=0;		 
 		 isDie=false;			//初始、重置為false，因為MainActivity的onCreate()比onResume()早呼叫，
 	 }							//所以onResume()裡抓到的isDie就是重置過的
 
 	
 	@Override
-	public void onDrawFrame(GL10 gl) {				
+	public void onDrawFrame(GL10 gl) {						
 		timeNow=System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	//清除螢幕和深度緩衝區
 		if(count == 0){			  
-			gl.glLoadIdentity();			//將原點移至螢幕中心		
-			gl.glTranslatef(0, 0,-10);		//物體往螢幕內移動10單位，將景物與視點分離
+			Log.d("ABC","count == 0...");
+//			gl.glLoadIdentity();			//將原點移至螢幕中心						後來發現這兩行寫在onSurfaceChanged比較好，因為myGlSurfaceView每呼叫
+//			gl.glTranslatef(0, 0,-10);		//物體往螢幕內移動10單位，將景物與視點分離                    onResume()，會呼叫onSurfaceCreated、onSurfaceChanged
 			player_positionX=0;				//繪製第一個frame時，玩家要出現在螢幕中央
 			player_positionY=0;
 		}
@@ -49,7 +52,7 @@ public class MyRender implements Renderer{
 			  		  		  		  			
 			if((count % (Math.ceil(MyConstant.BULLET_TIME_INTERVAL*1000/timeBetweenFrame))) == 1 &&	//每隔幾個Frame準備一顆子彈
 					bulletList.size() < MyConstant.BULLET_NUM){															
-				prepareBullet();
+				prepareBullet(gl);
 			}
 						
 			for(int i=0;i<bulletList.size();i++){														  						  
@@ -57,7 +60,7 @@ public class MyRender implements Renderer{
 					  deleteBullet(b,i);	//檢查是否需要消除子彈
 					  gl.glPushMatrix();			  
 					  gl.glTranslatef((float)(b.getBullet_positionX()), (float)(b.getBullet_positionY()), 0);	//平移
-					  gl.glScalef(0.0400f, 0.0400f, 0.0400f);			  
+					  gl.glScalef(0.5f, 0.5f, 0.5f);
 					  b.draw(gl);			  					  
 					  gl.glPopMatrix();			  			  					  
 					  checkDie(b);										  
@@ -78,25 +81,26 @@ public class MyRender implements Renderer{
 		// TODO Auto-generated method stub
 		Log.d("ABC","onSurfaceChanged(GL10 gl, int width, int height)...");
 		// 設定新視域視窗的大小
-		  gl.glViewport(0, 0, width, height);
-		  // 選擇投射的陣列模式
-		  gl.glMatrixMode(GL10.GL_PROJECTION);
-		  // 重設投射陣
-		  gl.glLoadIdentity();
-		  // 計算視窗的寬高比率
-		  GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f,
-		    100.0f);		  
-		  x_screen=width;
-		  y_screen=height;
-		  ratio_pixToDist=(float)(height/(2*Math.tan(22.5*Math.PI/180)*0.1));	//螢幕上的1單位相當於多少像素
-		  radius=Math.sqrt(width*width + height*height);					//設定佈署子彈的圓之半徑=畫面的斜邊長
-		  Log.d("Wang","ratio_pixToDist="+ ratio_pixToDist);
-		  Log.d("Wang","x_screen="+x_screen+" y_screen="+y_screen);
-		  Log.d("Wang","radius="+ radius);		  
-		  // 選擇MODELVIEW陣列
-		  gl.glMatrixMode(GL10.GL_MODELVIEW);
-		  // 重設MODELVIEW陣列
-		  gl.glLoadIdentity(); 
+		gl.glViewport(0, 0, width, height);
+		// 選擇投射的陣列模式
+		gl.glMatrixMode(GL10.GL_PROJECTION);
+		// 重設投射陣
+		gl.glLoadIdentity();
+		// 計算視窗的寬高比率
+		GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f,
+				100.0f);		  
+		x_screen=width;
+		y_screen=height;
+		ratio_pixToDist=(float)(height/(2*Math.tan(22.5*Math.PI/180)*0.1));	//螢幕上的1單位相當於多少像素
+		radius=Math.sqrt(width*width + height*height);					//設定佈署子彈的圓之半徑=畫面的斜邊長
+//		Log.d("Wang","ratio_pixToDist="+ ratio_pixToDist);
+//		Log.d("Wang","x_screen="+x_screen+" y_screen="+y_screen);
+//		Log.d("Wang","radius="+ radius);		  
+		// 選擇MODELVIEW陣列
+		gl.glMatrixMode(GL10.GL_MODELVIEW);
+		// 重設MODELVIEW陣列
+		gl.glLoadIdentity();
+		gl.glTranslatef(0, 0,-10);		//物體往螢幕內移動10單位，將景物與視點分離
 	}
 
 	@Override
@@ -117,16 +121,19 @@ public class MyRender implements Renderer{
 		gl.glDepthFunc(GL10.GL_LEQUAL);
 		//方形載入材質
 		square.loadTexture(gl);
+//		bullet.loadTexture(gl);
 		bulletList=new ArrayList<Bullet>();
 	}
 	
-	 public void setBitmap(Bitmap bitmap) {
-		 square.setBitmap(bitmap);
+	 public void setBitmap(Bitmap bitmap1,Bitmap bitmap2) {
+		 square.setBitmap(bitmap1);
+		 bullet.setBitmap(bitmap2);
 	 }
 	
 	//準備子彈
-	private void prepareBullet(){															
-		Bullet b=new Bullet();			  				  
+	private void prepareBullet(GL10 gl){															
+		Bullet b=new Bullet();
+		b.loadTexture(gl);
 		double tmpRadius=(radius/ratio_pixToDist)/0.01;								//將半徑從像素轉換成座標上的單位				  
 		double tmpAngle=Math.ceil(Math.random()*360);								//子彈圓心角
 		b.setBullet_positionX(tmpRadius*Math.cos(tmpAngle*Math.PI/180));	//設定當前子彈初始x方向的位移
@@ -163,11 +170,17 @@ public class MyRender implements Renderer{
 //				(b.getBullet_positionY() >= MyRender.player_positionY - 0.25 && b.getBullet_positionY() <= MyRender.player_positionY + 0.25)){
 //			isDie=true;
 //		}
+		ProbeCircle[] pCircleArray = new ProbeCircle[MyConstant.AIRPLANE_PROBE_PT.length];
+		for(int i=0;i<MyConstant.AIRPLANE_PROBE_PT.length;i++){
+			pCircleArray[i] = new ProbeCircle(player_positionX + MyConstant.AIRPLANE_PROBE_PT[i][0], 
+					player_positionY + MyConstant.AIRPLANE_PROBE_PT[i][1], MyConstant.AIRPLANE_PROBE_PT[i][2]);
+		}
+		/*
 		ProbeCircle[] pCircleArray={new ProbeCircle(player_positionX + 0.25, player_positionY + 0.25, 0.177),	//偵測碰撞圓陣列
 				new ProbeCircle(player_positionX - 0.25, player_positionY + 0.25, 0.177),
 				new ProbeCircle(player_positionX - 0.25, player_positionY - 0.25, 0.177),
 				new ProbeCircle(player_positionX + 0.25, player_positionY - 0.25, 0.177)};	
-		
+		*/
 		//偵測碰撞迴圈
 		for(int i=0;i<pCircleArray.length;i++){			
 				ProbeCircle tmpPC=pCircleArray[i];
