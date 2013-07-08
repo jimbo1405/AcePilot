@@ -60,7 +60,7 @@ public class MyRender implements Renderer{
 					  deleteBullet(b,i);	//檢查是否需要消除子彈
 					  gl.glPushMatrix();			  
 					  gl.glTranslatef((float)(b.getBullet_positionX()), (float)(b.getBullet_positionY()), 0);	//平移
-					  gl.glScalef(0.5f, 0.5f, 0.5f);
+					  gl.glScalef(0.125f, 0.125f, 0.125f);
 					  b.draw(gl);			  					  
 					  gl.glPopMatrix();			  			  					  
 					  checkDie(b);										  
@@ -113,12 +113,17 @@ public class MyRender implements Renderer{
 		gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
 		// 設定背景顏色為黑色, 格式是RGBA
 		gl.glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
+//		gl.glClearColor(1.0f, 1.0f, 1.0f, 0.5f);	//*****方便測試用
 		// 設定流暢的陰影模式
 		gl.glShadeModel(GL10.GL_SMOOTH);
 		// 啟動深度的測試
 		gl.glEnable(GL10.GL_DEPTH_TEST);
 		// GL_LEQUAL深度函式測試
 		gl.glDepthFunc(GL10.GL_LEQUAL);
+		
+	    gl.glEnable(GL10.GL_ALPHA_TEST);  // *****Enable Alpha Testing (To Make BlackTansparent)  	    
+	    gl.glAlphaFunc(GL10.GL_GREATER,0.1f);  // *****Set Alpha Testing (To Make Black Transparent)  
+		
 		//方形載入材質
 		square.loadTexture(gl);
 //		bullet.loadTexture(gl);
@@ -172,8 +177,9 @@ public class MyRender implements Renderer{
 //		}
 		ProbeCircle[] pCircleArray = new ProbeCircle[MyConstant.AIRPLANE_PROBE_PT.length];
 		for(int i=0;i<MyConstant.AIRPLANE_PROBE_PT.length;i++){
-			pCircleArray[i] = new ProbeCircle(player_positionX + MyConstant.AIRPLANE_PROBE_PT[i][0], 
-					player_positionY + MyConstant.AIRPLANE_PROBE_PT[i][1], MyConstant.AIRPLANE_PROBE_PT[i][2]);
+			pCircleArray[i] = new ProbeCircle(player_positionX + MyConstant.AIRPLANE_PROBE_PT[i][0] * MyConstant.COR_SCALE, 
+					player_positionY + MyConstant.AIRPLANE_PROBE_PT[i][1] * MyConstant.COR_SCALE, 
+					MyConstant.AIRPLANE_PROBE_PT[i][2] * MyConstant.COR_SCALE);
 		}
 		/*
 		ProbeCircle[] pCircleArray={new ProbeCircle(player_positionX + 0.25, player_positionY + 0.25, 0.177),	//偵測碰撞圓陣列

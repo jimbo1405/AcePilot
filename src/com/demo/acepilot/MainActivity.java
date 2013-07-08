@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -75,8 +76,8 @@ public class MainActivity extends Activity {
 		myRender=new MyRender();		
 		myRender.setBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.su_30_flanker),
 				BitmapFactory.decodeResource(getResources(), R.drawable.normal_bullet));
-		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//建立MyGlSurfaceView的物件							
-		myGlSurfaceView.setRenderer(myRender);	//設定render
+		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//建立MyGlSurfaceView的物件					
+		myGlSurfaceView.setRenderer(myRender);	//設定render		
 		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout
 		myGlSurfaceView.onPause();			
 		btnStart.bringToFront();	//將按鈕移到最上層

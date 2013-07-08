@@ -3,6 +3,7 @@ package com.demo.acepilot;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -10,7 +11,7 @@ import android.graphics.Bitmap;
 import android.opengl.GLUtils;
 import android.util.Log;
 
-public class Bullet extends Circle{
+public class Bullet{
 	private double bullet_positionX;	//子彈X位置
 	private double bullet_positionY;	//子彈Y位置
 	private double bullet_fly;			//子彈朝玩家飛行的速度(景物單位/秒)	
@@ -18,69 +19,112 @@ public class Bullet extends Circle{
 	private double bulletAngle;			//子彈的圓心角
 	private double bulletFlyAngle;		//子彈位置對玩家之向量與(1,0)向量之夾角(0~360)
 	
-	private FloatBuffer textureBuffer;
-	private static Bitmap bitmap;
-	private int texture;
-	
+	 // 點的陣列
+	 private float vertices[] = { -1.0f, 1.0f, 0.0f, // 0, 左上角
+	   -1.0f, -1.0f, 0.0f, // 1, 左下角
+	   1.0f, -1.0f, 0.0f, // 2, 右下角
+	   1.0f, 1.0f, 0.0f, // 3, 右上角
+	 };
+
+	 // 連接點的次序
+	 private short[] indices = { 0, 1, 2, 0, 2, 3 };
+	 
 	// 質地坐標
 	 private float[] textureCor = { 0.0f, 0.0f, //
-			   0.0f,1.0f, //
-			  1.0f, 1.0f, //
+			   0.0f, 1.0f, //
+			   1.0f, 1.0f, //
 			   1.0f, 0.0f, //
 			 };
-	
-	public Bullet(){
-		super();
+
+	 // 點的緩衝區
+	 private FloatBuffer vertexBuffer;
+	 // 索引值緩衝區
+	 private ShortBuffer indexBuffer;
+	// 質地緩衝區
+	 private FloatBuffer textureBuffer;
+	 
+	 private static Bitmap bitmap;
+	 private int texture;
+
+	 public Bullet() {
 		setBullet_positionX(0);
 		setBullet_positionY(0);
 		setBullet_fly(0);
-		setBullet_totalFly(0);
+		setBullet_totalFly(0); 
+		 
+		// 浮點數是4位元組因此需要把點陣列長度乘以4
+		ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
+		vbb.order(ByteOrder.nativeOrder());
+		vertexBuffer = vbb.asFloatBuffer();
+		vertexBuffer.put(vertices);
+		vertexBuffer.position(0);
 		
+		// 短整數是2位元組因此需要把點陣列長度乘以2
+		ByteBuffer ibb = ByteBuffer.allocateDirect(indices.length * 2);
+		ibb.order(ByteOrder.nativeOrder());
+		indexBuffer = ibb.asShortBuffer();
+		indexBuffer.put(indices);
+		indexBuffer.position(0);
+		  
 		ByteBuffer byteBuf = ByteBuffer.allocateDirect(textureCor.length * 4);
 		byteBuf.order(ByteOrder.nativeOrder());
 		textureBuffer = byteBuf.asFloatBuffer();
 		textureBuffer.put(textureCor);
 		textureBuffer.position(0);
-	}
-	
-	@Override
+	 }
+	 
+	 /**
+	  * 畫圖函式
+	  * 
+	  * @param gl
+	  */
 	public void draw(GL10 gl) {
 		// 启用2D纹理贴图
-	    gl.glEnable(GL10.GL_TEXTURE_2D);
-	    
+	    gl.glEnable(GL10.GL_TEXTURE_2D);	
+		// 逆時鐘
 		gl.glFrontFace(GL10.GL_CCW);
 		// 啟動CULL_FACE
 		gl.glEnable(GL10.GL_CULL_FACE);
 		// 刪除多邀形的背景
 		gl.glCullFace(GL10.GL_BACK);
-	    
-	    // 使用UV坐標
-	 	gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+		
+		// 啟動點的緩衝區
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		// 使用UV坐標
+		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);	
+		// 指定位置和資料格式
+		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
 		// 指定質地緩衝區
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
-		//設定當前顏色為透明
-		gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	  
 		// 执行纹理贴图
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, texture);
+		// 以三點劃出三角形
+		gl.glDrawElements(GL10.GL_TRIANGLES, indexBuffer.remaining(),
+			  GL10.GL_UNSIGNED_SHORT, indexBuffer);
 
-		super.draw(gl);
-		
+		// 除能點的緩衝區
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		// 除能CULL_FACE
 		gl.glDisable(GL10.GL_CULL_FACE);
+		// 禁用顶点、纹理座标数组
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+		// 停用2D纹理贴图
 		gl.glDisable(GL10.GL_TEXTURE_2D);
-	}
-	
-	 public void setBitmap(Bitmap bitmap) {	  
-		 Bullet.bitmap = bitmap;
 	 }
 
+	 public void setBitmap(Bitmap bitmap) {	  
+		 this.bitmap = bitmap;
+	 }
+	 
 	 public void loadTexture(GL10 gl)
 	    {
 	        Bitmap tmpBitmap = null;
 	        try
 	        {
 	            // 加载位图
-	            tmpBitmap= Bullet.bitmap;
+	            tmpBitmap=this.bitmap;
 	            int[] textures = new int[1];
 	            // 指定生成N个纹理（第一个参数指定生成1个纹理），
 	            // textures数组将负责存储所有纹理的代号。

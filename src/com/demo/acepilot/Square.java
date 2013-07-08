@@ -77,18 +77,16 @@ public class Square {
 		gl.glEnable(GL10.GL_CULL_FACE);
 		// 刪除多邀形的背景
 		gl.glCullFace(GL10.GL_BACK);
+		
 		// 啟動點的緩衝區
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 		// 使用UV坐標
-		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-	
+		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);	
 		// 指定位置和資料格式
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
 		// 指定質地緩衝區
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
-		//設定當前顏色為透明
-		gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	  
+
 		// 执行纹理贴图
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, texture);
 		// 以三點劃出三角形
