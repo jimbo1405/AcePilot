@@ -13,18 +13,27 @@ public class MyRender implements Renderer{
 	public static float player_positionX,player_positionY;	//	
 	public static float x_screen=0,y_screen=0;				//視窗的寬與高	
 	public static float ratio_pixToDist;					//比值，座標上每單位相當於多少像素
+	
+	public static boolean isDie;							//是否被擊中
+	public static long timePrevious;						//
+	public static boolean drawControlFlag=true;				//藉由控制這個屬性來達到revive時飛機閃爍
+	
 	private Square square;
 	private Bullet bullet;
+	private Coin coin;
 	private ArrayList<Bullet> bulletList;					//宣告預備子彈的list	
+	private ArrayList<Star> starList;						//宣告背景星星的list
+	private ArrayList<Coin> coinList;						//宣告coin的list
 	private double radius; 									//佈署子彈的圓之半徑(單位:像素)	
-	public static boolean isDie;							//是否被擊中
-	private long timePrevious,timeNow,timeBetweenFrame;
-	private int count;
+	private long timeNow,timeBetweenFrame;
+	private int count;										//第幾個frame
+	private ProbeCircle[] pCircleArray = new ProbeCircle[MyConstant.AIRPLANE_PROBE_PT.length];
 	
 	 public MyRender() {
 		 Log.d("ABC","MyRender()...");
 		 square = new Square();
 		 bullet = new Bullet();
+		 coin = new Coin();
 		 count=0;		 
 		 isDie=false;			//初始、重置為false，因為MainActivity的onCreate()比onResume()早呼叫，
 	 }							//所以onResume()裡抓到的isDie就是重置過的
@@ -40,29 +49,79 @@ public class MyRender implements Renderer{
 //			gl.glTranslatef(0, 0,-10);		//物體往螢幕內移動10單位，將景物與視點分離                    onResume()，會呼叫onSurfaceCreated、onSurfaceChanged
 			player_positionX=0;				//繪製第一個frame時，玩家要出現在螢幕中央
 			player_positionY=0;
+			bulletList=new ArrayList<Bullet>();
+			starList=new ArrayList<Star>();
+			coinList=new ArrayList<Coin>();
+			initBGStar();					//init background star			
 		}
 		if(count > 0){
 			timeBetweenFrame=timeNow-timePrevious;	//算出幾微秒繪製一個Frame			  		  						 
+			
+			//準備(補充)星星
+			if(starList.size() < MyConstant.STAR_NUM){
+				prepareBGStar();
+			}
+			
+			//畫背景星星
+			for(int i =0 ; i < starList.size() ; i++){
+				Star tmpStar = starList.get(i);
+				//刪除跑到螢幕外的星星
+				delBGStarOutOfScreen(tmpStar, i);
+				gl.glPushMatrix();
+				gl.glTranslatef((float)tmpStar.getStar_positionX(), (float)tmpStar.getStar_positionY(), 0);
+				gl.glScalef(0.01f, 0.01f, 0.01f);
+				float[] tmpColorArray=tmpStar.getColorArray();
+				gl.glColor4f(tmpColorArray[0], tmpColorArray[1], tmpColorArray[2], tmpColorArray[3]);
+				tmpStar.draw(gl);				
+				gl.glPopMatrix();
+				tmpStar.setStar_positionY(tmpStar.getStar_positionY() - tmpStar.getStar_velocity()*timeBetweenFrame/1000);
+			}
+			
+			gl.glColor4f(1.0f, 1.0f, 1.0f, 0.5f);	//還原畫筆為白色
+			
+			//每隔幾個Frame準備1個coin，有時會有連續產生2個甚至3個的狀況，因為timeBetweenFrame會變動，可能造成接近的frame餘數為1的情形
+			if((count % (Math.ceil(MyConstant.COIN_TIME_INTERVAL*1000/timeBetweenFrame))) == 1 &&	
+					coinList.size() < MyConstant.COIN_NUM){															
+				prepareCoin(gl);
+			}
+			
+			//this for-loop is used to draw coin.
+			for(int i=0;i<coinList.size();i++){
+				Coin c=coinList.get(i);
+				delEatenCoin(c, i);
+				gl.glPushMatrix();
+				gl.glTranslatef((float)c.getCoin_positionX(), (float)c.getCoin_positionY(), 0);
+				gl.glScalef(0.15f, 0.15f, 0.15f);
+				c.draw(gl);
+				gl.glFlush();	//*******
+				gl.glPopMatrix();
+			}
+			
+			//畫飛機
 			gl.glPushMatrix();													//儲存目前gl狀態		 
 			gl.glTranslatef(player_positionX, player_positionY, 0);
 			gl.glScalef(0.25f, 0.25f, 0.25f);									//調整方形的大小
 			gl.glRotatef(-45, 0, 0, 1);
-			square.draw(gl);		  											//畫出方形
+			if(drawControlFlag)													//******
+				square.draw(gl);		  										//畫出方形
+			gl.glFlush();	//*********
 			gl.glPopMatrix();													//回到上一個gl儲存點的狀態
 			  		  		  		  			
-			if((count % (Math.ceil(MyConstant.BULLET_TIME_INTERVAL*1000/timeBetweenFrame))) == 1 &&	//每隔幾個Frame準備一顆子彈
+			if((count % (Math.ceil(MyConstant.BULLET_TIME_INTERVAL*1000/timeBetweenFrame))) == 1 &&	//每隔幾個Frame準備1顆子彈
 					bulletList.size() < MyConstant.BULLET_NUM){															
 				prepareBullet(gl);
 			}
 						
+			//this for-loop is used to draw bullet.
 			for(int i=0;i<bulletList.size();i++){														  						  
 					  Bullet b=bulletList.get(i);
 					  deleteBullet(b,i);	//檢查是否需要消除子彈
 					  gl.glPushMatrix();			  
 					  gl.glTranslatef((float)(b.getBullet_positionX()), (float)(b.getBullet_positionY()), 0);	//平移
 					  gl.glScalef(0.125f, 0.125f, 0.125f);
-					  b.draw(gl);			  					  
-					  gl.glPopMatrix();			  			  					  
+					  b.draw(gl);
+					  gl.glFlush();	//*********
+					  gl.glPopMatrix();					 
 					  checkDie(b);										  
 					  b.setBullet_positionX(b.getBullet_positionX() - 
 							  b.getBullet_fly()*Math.cos(b.getBulletFlyAngle()*Math.PI/180)*timeBetweenFrame/1000);	 	//設定當前子彈下一個frame時x方向的位移
@@ -101,6 +160,10 @@ public class MyRender implements Renderer{
 		// 重設MODELVIEW陣列
 		gl.glLoadIdentity();
 		gl.glTranslatef(0, 0,-10);		//物體往螢幕內移動10單位，將景物與視點分離
+		if(bulletList != null)			
+			reLoadBulletTexture(gl);	//給原本就存在bulletList中的子彈材質
+		if(coinList != null)			
+			reLoadCoinTexture(gl);		//給原本就存在coinList中的coin材質
 	}
 
 	@Override
@@ -127,14 +190,32 @@ public class MyRender implements Renderer{
 		//方形載入材質
 		square.loadTexture(gl);
 //		bullet.loadTexture(gl);
-		bulletList=new ArrayList<Bullet>();
+//		bulletList=new ArrayList<Bullet>();	//***搬到onDrawFrame()
+//		starList=new ArrayList<Star>();
 	}
 	
-	 public void setBitmap(Bitmap bitmap1,Bitmap bitmap2) {
+	 public void setBitmap(Bitmap bitmap1,Bitmap bitmap2,Bitmap bitmap3) {
 		 square.setBitmap(bitmap1);
 		 bullet.setBitmap(bitmap2);
+		 coin.setBitmap(bitmap3);
 	 }
 	
+	//暫停後、繼續遊戲時必須為當下已存在bulletList內的子彈重新給他材質，因為呼叫onResume()事實上GL10的物件gl已經是新的
+	private void reLoadBulletTexture(GL10 gl){
+		for(int i=0;i<bulletList.size();i++){
+			Bullet b=bulletList.get(i);
+			b.loadTexture(gl);
+		}
+	}
+	
+	//暫停後、繼續遊戲時必須為當下已存在coinList內的coin重新給他材質，因為呼叫onResume()事實上GL10的物件gl已經是新的
+	private void reLoadCoinTexture(GL10 gl){
+		for(int i=0;i<coinList.size();i++){
+			Coin c=coinList.get(i);
+			c.loadTexture(gl);
+		}
+	}
+	 
 	//準備子彈
 	private void prepareBullet(GL10 gl){															
 		Bullet b=new Bullet();
@@ -169,24 +250,25 @@ public class MyRender implements Renderer{
 
 	}
 	
-	//測試是否被子彈擊中
-	private void checkDie(Bullet b){
-//		if((b.getBullet_positionX() >= MyRender.player_positionX - 0.25 && b.getBullet_positionX() <= MyRender.player_positionX + 0.25) &&
-//				(b.getBullet_positionY() >= MyRender.player_positionY - 0.25 && b.getBullet_positionY() <= MyRender.player_positionY + 0.25)){
-//			isDie=true;
-//		}
-		ProbeCircle[] pCircleArray = new ProbeCircle[MyConstant.AIRPLANE_PROBE_PT.length];
+	//get pCircleArray.
+	private void getProbeCircleArray(){
 		for(int i=0;i<MyConstant.AIRPLANE_PROBE_PT.length;i++){
 			pCircleArray[i] = new ProbeCircle(player_positionX + MyConstant.AIRPLANE_PROBE_PT[i][0] * MyConstant.COR_SCALE, 
 					player_positionY + MyConstant.AIRPLANE_PROBE_PT[i][1] * MyConstant.COR_SCALE, 
 					MyConstant.AIRPLANE_PROBE_PT[i][2] * MyConstant.COR_SCALE);
 		}
-		/*
-		ProbeCircle[] pCircleArray={new ProbeCircle(player_positionX + 0.25, player_positionY + 0.25, 0.177),	//偵測碰撞圓陣列
-				new ProbeCircle(player_positionX - 0.25, player_positionY + 0.25, 0.177),
-				new ProbeCircle(player_positionX - 0.25, player_positionY - 0.25, 0.177),
-				new ProbeCircle(player_positionX + 0.25, player_positionY - 0.25, 0.177)};	
-		*/
+	}
+	
+	//測試是否被子彈擊中
+	private void checkDie(Bullet b){
+		getProbeCircleArray();
+//		ProbeCircle[] pCircleArray = new ProbeCircle[MyConstant.AIRPLANE_PROBE_PT.length];
+//		for(int i=0;i<MyConstant.AIRPLANE_PROBE_PT.length;i++){
+//			pCircleArray[i] = new ProbeCircle(player_positionX + MyConstant.AIRPLANE_PROBE_PT[i][0] * MyConstant.COR_SCALE, 
+//					player_positionY + MyConstant.AIRPLANE_PROBE_PT[i][1] * MyConstant.COR_SCALE, 
+//					MyConstant.AIRPLANE_PROBE_PT[i][2] * MyConstant.COR_SCALE);
+//		}
+
 		//偵測碰撞迴圈
 		for(int i=0;i<pCircleArray.length;i++){			
 				ProbeCircle tmpPC=pCircleArray[i];
@@ -198,6 +280,65 @@ public class MyRender implements Renderer{
 					break;
 				}					
 		}
-	}	
-		
+	}
+	
+	//初始背景星星
+	private void initBGStar(){
+		for(int i=0 ; i < MyConstant.STAR_NUM ; i++){
+			Star tmpSatr = new Star();
+			//(-width/2 ~ +width/2)/(ratio_pixToDist*0.01)
+			tmpSatr.setStar_positionX(((Math.random()*x_screen)+(-x_screen/2)) / (ratio_pixToDist*0.01));
+			tmpSatr.setStar_positionY(((Math.random()*y_screen)+(-y_screen/2)) / (ratio_pixToDist*0.01));
+			//設定星星每秒往下移動的速度為5~25(像素/秒)
+			tmpSatr.setStar_velocity(((int)(Math.random()*21)+5) / (ratio_pixToDist*0.01));							
+			tmpSatr.setColorArray((float)Math.random(), (float)Math.random(), (float)Math.random(), 0.5f);			
+			starList.add(tmpSatr);
+		}		
+	}
+	
+	//準備(補充)星星
+	private void prepareBGStar(){
+		Star tmpSatr = new Star();
+		tmpSatr.setStar_positionX(((Math.random()*x_screen)+(-x_screen/2)) / (ratio_pixToDist*0.01));
+		tmpSatr.setStar_positionY((y_screen/2) / (ratio_pixToDist*0.01));
+		//設定星星每秒往下移動的速度為5~25(像素/秒)
+		tmpSatr.setStar_velocity(((int)(Math.random()*21)+5) / (ratio_pixToDist*0.01));							
+		tmpSatr.setColorArray((float)Math.random(), (float)Math.random(), (float)Math.random(), 0.5f);			
+		starList.add(tmpSatr);
+	}
+	
+	//刪除跑到螢幕外的星星
+	private void delBGStarOutOfScreen(Star tmpStar, int i){
+		if(tmpStar.getStar_positionY() < (-y_screen/2)/(ratio_pixToDist*0.01)){
+			starList.remove(i);
+		}
+	}
+	
+	//準備(補充)coin
+	private void prepareCoin(GL10 gl){
+		Coin tmpCoin = new Coin();
+		//假設coin的位置為螢幕大小往內縮20個像素
+		tmpCoin.setCoin_positionX(((Math.random()*(x_screen - 40))+(-x_screen/2 + 20)) / (ratio_pixToDist*0.01));
+		tmpCoin.setCoin_positionY(((Math.random()*(y_screen - 40))+(-y_screen/2 + 20)) / (ratio_pixToDist*0.01));
+		tmpCoin.loadTexture(gl);
+		coinList.add(tmpCoin);
+	}
+	
+	//刪除吃掉的coin
+	private void delEatenCoin(Coin c,int index){
+		getProbeCircleArray();		
+		//偵測碰撞迴圈
+		for(int i=0;i<pCircleArray.length;i++){			
+				ProbeCircle tmpPC=pCircleArray[i];
+				double tmp_dx=c.getCoin_positionX() - tmpPC.getpCircle_positionX();	//coinX-圓心X
+				double tmp_dy=c.getCoin_positionY() - tmpPC.getpCircle_positionY();	//coinY-圓心Y
+				double tmpDistance=Math.sqrt(tmp_dx*tmp_dx + tmp_dy*tmp_dy);	//coin與圓心的距離
+				if(tmpDistance <= tmpPC.getR()){	
+					coinList.remove(index);
+					MainActivity.coinGet++;
+					MainActivity.myGameHandler.sendEmptyMessage(MainActivity.TV_SHOWCOIN);
+					break;
+				}					
+		}
+	}
 }

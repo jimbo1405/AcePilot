@@ -7,13 +7,6 @@
     tools:context=".MainActivity" >
 
         <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"           
-            android:text="TextView"
-            android:textColor="#00FF00" />
-
-        <TextView
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -27,8 +20,8 @@
             android:id="@+id/button1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
+            android:layout_alignTop="@+id/textView2"
+            android:layout_centerHorizontal="true"
             android:background="@android:color/transparent"
             android:text="@string/start"
             android:textColor="#00FF00" />
@@ -37,10 +30,39 @@
             android:id="@+id/button2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
-            android:layout_toLeftOf="@+id/button1"
             android:background="@android:color/transparent"
             android:text="Button"
+            android:textColor="#00FF00" />
+
+        <ToggleButton
+            android:id="@+id/toggleButton1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:background="@android:color/transparent"
+            android:text="ToggleButton"
+            android:textOff="@string/pause"
+            android:textOn="@string/resume" 
+            android:textColor="#00FF00"/>
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/star_coin" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/imageView1"
+            android:text="TextView"
             android:textColor="#00FF00" />
  
 </RelativeLayout>

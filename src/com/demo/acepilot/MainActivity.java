@@ -8,6 +8,8 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
@@ -21,21 +23,36 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AbsoluteLayout;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
+//the MainActivity of this proj.
 public class MainActivity extends Activity {
 	private Button btnStart,btnRestart;
-	private TextView tv1,tvStartCD;	//textView for start count down
+	private ToggleButton btnPauseResume;
+	private TextView tvShowCoin,tvStartCD;					//tvShowCoin, a textView to show how many coins did you get.
+															//tvStartCD, a textView to make the count down-effection when the game starts.  
+	private ImageView ivCoin;
 	private MyGlSurfaceView myGlSurfaceView;
 	private MyRender myRender; 
 	private RelativeLayout gl_layout;
-	private long timeStart,timeDie;	//開始的時間,結束的時間,活著的總時間
-	private double timeLive;
-	private DecimalFormat df;	//用來格式化飛行秒數
+	private long timeStart;									//records the time start playing anytime.
+	private double timeScore;								//records the score which is the whole time of playing.
+	private DecimalFormat df;								//use to format timeScore.
 	
-	public Handler myGameHandler;	//a handler to handle msg
-	public static int gameStatus; 
+	public static Handler myGameHandler;					//a handler to handle message,include game mode,...etc.
+	public static int gameStatus;							//records the status of the game.
+	public static int coinGet;								//the number of coins which is gotten during one game.
+	public final static int TV_SHOWCOIN=2000;
+	
+	private final static int PROGRESSDIALOG_REVIVE=1000;	//give PROGRESSDIALOG_REVIVE a final value,then we can easily identify it.
+	private ProgressDialog reviveProgressDialog;			//obj's reference of ProgressDialog class(物件參考).
+	private int progressCount;								//use to store the count value of progressbar at the moment. 
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -58,10 +75,14 @@ public class MainActivity extends Activity {
 		gl_layout=(RelativeLayout)findViewById(R.id.gl_layout);	//find出frameLayout
 		btnStart=(Button)findViewById(R.id.button1);
 		btnRestart=(Button)findViewById(R.id.button2);
-		tv1=(TextView)findViewById(R.id.textView1);
+		btnPauseResume=(ToggleButton)findViewById(R.id.toggleButton1);
+		ivCoin=(ImageView)findViewById(R.id.imageView1);
+		tvShowCoin=(TextView)findViewById(R.id.textView1);
+		tvShowCoin.setText("X"+coinGet);
 		tvStartCD=(TextView)findViewById(R.id.textView2);
 		tvStartCD.setText("");	//let tvStartCD become blank at first
-		df=new DecimalFormat("0.00");	//initial df and set pattern
+		df=new DecimalFormat("0.000");	//initial df and set pattern
+		reviveProgressDialog=new ProgressDialog(this);
 	}
 	
 	//set all btn
@@ -69,20 +90,30 @@ public class MainActivity extends Activity {
 		MyOnClickListener myOnClickListener=new MyOnClickListener(); 
 		btnStart.setOnClickListener(myOnClickListener);
 		btnRestart.setOnClickListener(myOnClickListener);
+		btnPauseResume.setOnCheckedChangeListener(myOnClickListener);
 	}
 	
 	//prepare myGlSurfaceView
 	private void prepareGlSurfaceView(){		
 		myRender=new MyRender();		
 		myRender.setBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.su_30_flanker),
-				BitmapFactory.decodeResource(getResources(), R.drawable.normal_bullet));
+				BitmapFactory.decodeResource(getResources(), R.drawable.normal_bullet),
+				BitmapFactory.decodeResource(getResources(), R.drawable.star_coin));
 		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//建立MyGlSurfaceView的物件					
 		myGlSurfaceView.setRenderer(myRender);	//設定render		
 		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout
 		myGlSurfaceView.onPause();			
 		btnStart.bringToFront();	//將按鈕移到最上層
 		btnRestart.bringToFront();
-		tv1.bringToFront();
+		
+		btnPauseResume.setVisibility(View.INVISIBLE);
+		btnPauseResume.bringToFront();
+		
+		tvShowCoin.setVisibility(View.INVISIBLE);
+		tvShowCoin.bringToFront();
+		ivCoin.setVisibility(View.INVISIBLE);
+		ivCoin.bringToFront();
+		
 		tvStartCD.bringToFront();
 	}
 	
@@ -99,32 +130,71 @@ public class MainActivity extends Activity {
 				case 0:
 					break;
 				
-				//GAME_START (按下start後的狀態)
+				//GAME_START (按下start後)
 				case 1:		
 					gameStatus=GameStatus.GAME_START.ordinal();	//refresh gameStatus					
-					handleStrtNewGame(msg);		//call startGame()
+					handleStrtNewGame(msg);						//call startGame()
+					btnStart.setVisibility(View.INVISIBLE);		//hide btnStart 
 					break;
 					
 				//GAME_PAUSE
 				case 2:	
+					gameStatus=GameStatus.GAME_PAUSE.ordinal();
+					myGlSurfaceView.onPause();
 					break;
 				
-				//GAME_RESUME
+				//GAME_RESUME (繼續遊戲)
 				case 3:	
+					gameStatus=GameStatus.GAME_RESUME.ordinal();
+					MyRender.timePrevious=System.currentTimeMillis();
+					myGlSurfaceView.onResume();
 					break;	
 				
 				//GAME_HIT
 				case 4:	
 					gameStatus=GameStatus.GAME_HIT.ordinal();
-					myGlSurfaceView.onPause();	// set myGlSurfaceView pause
-					openDialog();
-					break;		
-				}
+					myGlSurfaceView.onPause();	//make myGlSurfaceView pause.
+					//setMessage() must writes here because onCreateDialog(int id) is only called once.
+					reviveProgressDialog.setMessage("總共存活"+df.format(timeScore/1000)+"秒");
+					showDialog(PROGRESSDIALOG_REVIVE);					
+					break;
+				
+				//GAME_REVIVE
+				case 5:
+					gameStatus=GameStatus.GAME_REVIVE.ordinal();
+					MyRender.timePrevious=System.currentTimeMillis();
+					myGlSurfaceView.onResume();				
+					twinklePlane();
+					break;
+				
+				//GAME_OVER
+				case 6:
+					gameStatus=GameStatus.GAME_OVER.ordinal();
+					MainActivity.this.finish();	//*******
+					break;
+					
+				//GAME_HIGHSCORE
+				case 7:
+					gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();
+					break;	
+				
+				//針對progressDialog處理
+				case PROGRESSDIALOG_REVIVE:
+					reviveProgressDialog.setProgress(progressCount);
+					if(progressCount == 0)
+						reviveProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+					break;
+					
+				//針對tvShowCoin處理
+				case TV_SHOWCOIN:
+					tvShowCoin.setText("X"+coinGet);
+					break;
+				}				
 			}			
 		};
 	}
 	
-	class MyOnClickListener implements OnClickListener{
+	class MyOnClickListener implements OnClickListener,CompoundButton.OnCheckedChangeListener{
 		
 		@Override
 		public void onClick(View v) {
@@ -144,37 +214,52 @@ public class MainActivity extends Activity {
 			}
 		}
 		
+		//pause,resume's event.
+		@Override
+		public void onCheckedChanged(CompoundButton buttonView,
+				boolean isChecked) {
+			if(isChecked){
+				myGameHandler.sendEmptyMessage(GameStatus.GAME_PAUSE.ordinal());
+				timeScore += System.currentTimeMillis() - timeStart;
+			}	
+			else{
+				myGameHandler.sendEmptyMessage(GameStatus.GAME_RESUME.ordinal());
+				timeStart = System.currentTimeMillis();
+			}
+			isChecked = !isChecked;
+		}
+		
 	}
 		
-	private void openDialog(){
-		timeLive=(timeDie-timeStart)/1000.0;
-		new AlertDialog.Builder(MainActivity.this)
-		.setTitle("哈哈哈")
-		.setMessage(df.format(timeLive)+"秒被擊中了")
-		.setPositiveButton("結束", new DialogInterface.OnClickListener(){
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
-				MainActivity.this.finish();
-			}
-			
-		})
-		.setNegativeButton("繼續", new DialogInterface.OnClickListener(){
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
-//				Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("http://android.gasolin.idv.tw/"));
-//				startActivity(intent);			
-				MyRender.isDie=false;
-				createTestDieThread();
-				myGlSurfaceView.onResume();				
-			}
-			
-		})
-		.show();
-	}
+//	private void openDialog(){
+//		timeLive=(timeDie-timeStart)/1000.0;
+//		new AlertDialog.Builder(MainActivity.this)
+//		.setTitle("哈哈哈")
+//		.setMessage(df.format(timeLive)+"秒被擊中了")
+//		.setPositiveButton("結束", new DialogInterface.OnClickListener(){
+//
+//			@Override
+//			public void onClick(DialogInterface dialog, int which) {
+//				// TODO Auto-generated method stub
+//				MainActivity.this.finish();
+//			}
+//			
+//		})
+//		.setNegativeButton("繼續", new DialogInterface.OnClickListener(){
+//
+//			@Override
+//			public void onClick(DialogInterface dialog, int which) {
+//				// TODO Auto-generated method stub
+////				Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("http://android.gasolin.idv.tw/"));
+////				startActivity(intent);											
+//				MyRender.timePrevious=System.currentTimeMillis();
+//				myGlSurfaceView.onResume();				
+////				createTestDieThread();								
+//			}
+//			
+//		})
+//		.show();
+//	}
 
 	
 	//send the msg by starting new game
@@ -198,7 +283,7 @@ public class MainActivity extends Activity {
 					myGameHandler.sendMessage(msg);
 				}
 			}
-		}).start();					
+		}).start();
 	}
 	
 	//handle the msg by starting new game
@@ -223,6 +308,9 @@ public class MainActivity extends Activity {
 									
 			if(msg.arg1 == 0){
 				tvStartCD.setVisibility(View.GONE);
+				btnPauseResume.setVisibility(View.VISIBLE);	//btnPauseResume appears
+				ivCoin.setVisibility(View.VISIBLE);
+				tvShowCoin.setVisibility(View.VISIBLE);
 				timeStart=System.currentTimeMillis();	//get timeStart value
 			}	
 		}					
@@ -230,24 +318,101 @@ public class MainActivity extends Activity {
 
 	//create testDie's thread
 	private void createTestDieThread(){
-		Thread tmpT = new Thread(new Runnable() {
-			
+		MyRender.isDie = false;		//MyRender.isDie must be false before testDie.
+		new Thread(new Runnable() {			
 			@Override
 			public void run() {
 				while(true){							//直到isDie為true則開啟對話方塊並跳出迴圈
-					if(MyRender.isDie == true){
-						timeDie=System.currentTimeMillis();	//get timeDie value 						
+					if(MyRender.isDie == true){						 						
 						myGameHandler.sendEmptyMessage(GameStatus.GAME_HIT.ordinal());						
 						break;
 					}
 				}
+				timeScore += System.currentTimeMillis() - timeStart;
 			}
-		});
-		tmpT.start();
-		tmpT=null;
+		}).start();
 	}
 	
+	//設計被擊中時彈出的對話框
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		DialogInterface.OnClickListener myListener=new DialogInterface.OnClickListener(){
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				switch (which) {
+				case DialogInterface.BUTTON_POSITIVE:
+					myGameHandler.sendEmptyMessage(GameStatus.GAME_REVIVE.ordinal());
+					timeStart = System.currentTimeMillis();
+					break;
+				case DialogInterface.BUTTON_NEGATIVE:
+					myGameHandler.sendEmptyMessage(GameStatus.GAME_OVER.ordinal());
+					break;	
+				}				
+			}			
+		};
+		
+		switch (id) {
+		//332~337 is only called once.
+		case PROGRESSDIALOG_REVIVE:
+			reviveProgressDialog.setMax(100);	//設最大值為100
+			reviveProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);	//設定樣式	
+			reviveProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE, getResources().getString(R.string.revive), myListener);
+			reviveProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getResources().getString(R.string.end), myListener);
+			reviveProgressDialog.setCancelable(false);	//set dialog not to dismiss by touching other where on the screen. 
+//			Log.d("ABC", "timeLive="+timeLive);
+			break;
+		}		
+		return reviveProgressDialog;
+	}
 	
+	//對被擊中時彈出的對話框的時程控制
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		switch (id) {
+		case PROGRESSDIALOG_REVIVE:
+			new Thread(new Runnable() {				
+				@Override
+				public void run() {
+					reviveProgressDialog.setProgress(100);
+					for(int i=100;i>=0;i--){
+						if(gameStatus == GameStatus.GAME_REVIVE.ordinal())	//break this for loop when the gameStatus is GAME_REVIVE.
+							break;
+						progressCount=i;
+						myGameHandler.sendEmptyMessage(PROGRESSDIALOG_REVIVE);
+						try {
+							Thread.sleep(200);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}										
+					}					
+				}
+			}).start();
+			break;
+		}		
+	}
+	
+	//revive時飛機閃爍效果5sec
+	private void twinklePlane(){
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				for(int i=0;i<20;i++){
+					MyRender.drawControlFlag = !MyRender.drawControlFlag;
+					try {
+						Thread.sleep(250);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if(i==9)
+						MyRender.drawControlFlag=true;
+				}
+				createTestDieThread();	//TestDieThread() starts after 5secs.
+			}
+		}).start();		
+	}
 	
 	@Override
 	protected void onResume() {
@@ -260,7 +425,8 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		Log.d("ABC","onDestroy()...");
-		super.onDestroy();								
+		super.onDestroy();
+		android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
 	@Override
