@@ -7,7 +7,32 @@
     <string name="start">START</string>
     <string name="resume">RESUME</string>
     <string name="pause">PAUSE</string>
-    <string name="revive">REVIVE</string>
+    <string name="revive">REVIVE</string>    
+    <string name="continu">CONTINUE</string>
+    <string name="level">LEVEL</string>
+    <string-array name="comment_array">
+        <item>打包回府</item>
+        <item>清潔茅房</item>
+        <item>猴子一般</item>
+        <item>手指正常</item>
+        <item>無臉雜魚</item>
+        <item>雜魚菁英</item>
+        <item>雜魚頭目</item>
+        <item>脫胎換骨</item>
+        <item>明日之星</item>
+        <item>神功初成</item>
+        <item>出神入化</item>
+        <item>天下無敵</item>
+    </string-array>
     <string name="end">END</string>
+    <string name="hign_score">HIGH SCORE</string>
+    <string-array name="rank">
+        <item >1st</item>
+        <item >2nd</item>
+        <item >3rd</item>
+        <item >4th</item>
+        <item >5th</item>
+    </string-array>
+    <string name="back_main">BACK MAIN</string>
 
 </resources>

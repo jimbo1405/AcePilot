@@ -1,31 +1,26 @@
 package com.demo.acepilot;
 
+import java.lang.ref.WeakReference;
 import java.text.DecimalFormat;
-
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Message;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.PixelFormat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AbsoluteLayout;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -42,24 +37,25 @@ public class MainActivity extends Activity {
 	private RelativeLayout gl_layout;
 	private long timeStart;									//records the time start playing anytime.
 	private double timeScore;								//records the score which is the whole time of playing.
+	private String timeScoreInSec;							//
 	private DecimalFormat df;								//use to format timeScore.
 	
-	public static Handler myGameHandler;					//a handler to handle message,include game mode,...etc.
+	public static MyGameHandler myGameHandler;				//a handler to handle message,include game mode,...etc.
 	public static int gameStatus;							//records the status of the game.
 	public static int coinGet;								//the number of coins which is gotten during one game.
 	public final static int TV_SHOWCOIN=2000;
 	
 	private final static int PROGRESSDIALOG_REVIVE=1000;	//give PROGRESSDIALOG_REVIVE a final value,then we can easily identify it.
-	private ProgressDialog reviveProgressDialog;			//obj's reference of ProgressDialog class(™´•Û∞—¶“).
+	private ProgressDialog reviveProgressDialog;			//obj's reference of ProgressDialog class(Áâ©‰ª∂ÂèÉËÄÉ).
 	private int progressCount;								//use to store the count value of progressbar at the moment. 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("ABC","onCreate(Bundle savedInstanceState)...");
+		Log.d("jimbo","onCreate()...");
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//≥]©w•˛ø√πı
-		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//≥]©wø√πı¨∞´´™Ω
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//Ë®≠ÂÆöÂÖ®Ëû¢Âπï
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//Ë®≠ÂÆöËû¢ÂπïÁÇ∫ÂûÇÁõ¥
 
 		setContentView(R.layout.activity_main);		
 		findView();
@@ -70,9 +66,9 @@ public class MainActivity extends Activity {
 
 	}
 	
-	//find•X§∏•Û
+	//findÂá∫ÂÖÉ‰ª∂
 	private void findView(){
-		gl_layout=(RelativeLayout)findViewById(R.id.gl_layout);	//find•XframeLayout
+		gl_layout=(RelativeLayout)findViewById(R.id.gl_layout);	//findÂá∫frameLayout
 		btnStart=(Button)findViewById(R.id.button1);
 		btnRestart=(Button)findViewById(R.id.button2);
 		btnPauseResume=(ToggleButton)findViewById(R.id.toggleButton1);
@@ -82,7 +78,7 @@ public class MainActivity extends Activity {
 		tvStartCD=(TextView)findViewById(R.id.textView2);
 		tvStartCD.setText("");	//let tvStartCD become blank at first
 		df=new DecimalFormat("0.000");	//initial df and set pattern
-		reviveProgressDialog=new ProgressDialog(this);
+		prepareReviveDialog();
 	}
 	
 	//set all btn
@@ -99,13 +95,13 @@ public class MainActivity extends Activity {
 		myRender.setBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.su_30_flanker),
 				BitmapFactory.decodeResource(getResources(), R.drawable.normal_bullet),
 				BitmapFactory.decodeResource(getResources(), R.drawable.star_coin));
-		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//´ÿ•ﬂMyGlSurfaceView™∫™´•Û					
-		myGlSurfaceView.setRenderer(myRender);	//≥]©wrender		
-		gl_layout.addView(myGlSurfaceView);		//±NMyGlSurfaceView™∫™´•Û•[§Jgl_layout
+		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//Âª∫Á´ãMyGlSurfaceViewÁöÑÁâ©‰ª∂					
+		myGlSurfaceView.setRenderer(myRender);	//Ë®≠ÂÆörender		
+		gl_layout.addView(myGlSurfaceView);		//Â∞áMyGlSurfaceViewÁöÑÁâ©‰ª∂Âä†ÂÖ•gl_layout
 		myGlSurfaceView.onPause();			
-		btnStart.bringToFront();	//±N´ˆ∂s≤æ®Ï≥Ã§Wºh
+		btnStart.bringToFront();	//Â∞áÊåâÈàïÁßªÂà∞ÊúÄ‰∏äÂ±§
 		btnRestart.bringToFront();
-		
+				
 		btnPauseResume.setVisibility(View.INVISIBLE);
 		btnPauseResume.bringToFront();
 		
@@ -117,60 +113,71 @@ public class MainActivity extends Activity {
 		tvStartCD.bringToFront();
 	}
 	
-	//create myGameHandler
-	 private void createMyGameHandler(){
-		myGameHandler=new Handler(){
-			@Override
-			public void handleMessage(Message msg) {
-				// TODO Auto-generated method stub
-				super.handleMessage(msg);
+	public static class MyGameHandler extends Handler {
+	    private final WeakReference<MainActivity> mActivity;
+	 
+	    public MyGameHandler(MainActivity activity) {
+	      mActivity = new WeakReference<MainActivity>(activity);
+	    }
+	 
+	    @Override
+	    public void handleMessage(Message msg) {
+	      MainActivity activity = mActivity.get();
+	      if (activity != null) {
 				switch(msg.what){
 				
 				//GAME_READY
 				case 0:
 					break;
 				
-				//GAME_START (´ˆ§Ustart´·)
+				//GAME_START (Êåâ‰∏ãstartÂæå)
 				case 1:		
 					gameStatus=GameStatus.GAME_START.ordinal();	//refresh gameStatus					
-					handleStrtNewGame(msg);						//call startGame()
-					btnStart.setVisibility(View.INVISIBLE);		//hide btnStart 
+					activity.handleStrtNewGame(msg);						//call startGame()
+					activity.btnStart.setVisibility(View.INVISIBLE);		//hide btnStart 
 					break;
 					
 				//GAME_PAUSE
 				case 2:	
 					gameStatus=GameStatus.GAME_PAUSE.ordinal();
-					myGlSurfaceView.onPause();
+					activity.myGlSurfaceView.onPause();
 					break;
 				
-				//GAME_RESUME (ƒ~ƒÚπC¿∏)
+				//GAME_RESUME (ÁπºÁ∫åÈÅäÊà≤)
 				case 3:	
 					gameStatus=GameStatus.GAME_RESUME.ordinal();
 					MyRender.timePrevious=System.currentTimeMillis();
-					myGlSurfaceView.onResume();
+					activity.myGlSurfaceView.onResume();
 					break;	
 				
 				//GAME_HIT
 				case 4:	
 					gameStatus=GameStatus.GAME_HIT.ordinal();
-					myGlSurfaceView.onPause();	//make myGlSurfaceView pause.
+					activity.myGlSurfaceView.onPause();	//make myGlSurfaceView pause.
 					//setMessage() must writes here because onCreateDialog(int id) is only called once.
-					reviveProgressDialog.setMessage("¡`¶@¶s¨°"+df.format(timeScore/1000)+"¨Ì");
-					showDialog(PROGRESSDIALOG_REVIVE);					
+					activity.timeScoreInSec=activity.df.format(activity.timeScore/1000);
+					activity.reviveProgressDialog.setMessage("Á∏ΩÂÖ±Â≠òÊ¥ª"+activity.timeScoreInSec+"Áßí");
+					activity.reviveProgressDialog.show();
+					activity.controlReviveDialog();					
 					break;
 				
 				//GAME_REVIVE
 				case 5:
 					gameStatus=GameStatus.GAME_REVIVE.ordinal();
 					MyRender.timePrevious=System.currentTimeMillis();
-					myGlSurfaceView.onResume();				
-					twinklePlane();
+					activity.myGlSurfaceView.onResume();				
+					activity.twinklePlane();
 					break;
 				
 				//GAME_OVER
 				case 6:
 					gameStatus=GameStatus.GAME_OVER.ordinal();
-					MainActivity.this.finish();	//*******
+					Intent myIntent=new Intent();
+					myIntent.setClass(activity, GameResultActivity.class);
+					myIntent.putExtra("timeScoreInSec",activity.timeScoreInSec);
+					myIntent.putExtra("coinGet",coinGet);
+					myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //Ê≥®ÊÑèÊú¨Ë°åÁöÑFLAGËÆæÁΩÆ
+					activity.startActivity(myIntent);					
 					break;
 					
 				//GAME_HIGHSCORE
@@ -178,20 +185,25 @@ public class MainActivity extends Activity {
 					gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();
 					break;	
 				
-				//∞wπÔprogressDialog≥B≤z
+				//ÈáùÂ∞çprogressDialogËôïÁêÜ
 				case PROGRESSDIALOG_REVIVE:
-					reviveProgressDialog.setProgress(progressCount);
-					if(progressCount == 0)
-						reviveProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+					activity.reviveProgressDialog.setProgress(activity.progressCount);
+					if(activity.progressCount == 0)
+						activity.reviveProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
 					break;
 					
-				//∞wπÔtvShowCoin≥B≤z
+				//ÈáùÂ∞çtvShowCoinËôïÁêÜ
 				case TV_SHOWCOIN:
-					tvShowCoin.setText("X"+coinGet);
+					activity.tvShowCoin.setText("X"+coinGet);
 					break;
-				}				
-			}			
-		};
+				}	
+	      }
+	    }
+	  }
+	
+	//create myGameHandler
+	 private void createMyGameHandler(){
+		myGameHandler=new MyGameHandler(MainActivity.this);
 	}
 	
 	class MyOnClickListener implements OnClickListener,CompoundButton.OnCheckedChangeListener{
@@ -204,7 +216,7 @@ public class MainActivity extends Activity {
 				sendStrNewGame();	//call sendStrNewGame()
 				break;
 			
-			//≠´∑s∂}©l
+			//ÈáçÊñ∞ÈñãÂßã
 			case R.id.button2:	
 				myGlSurfaceView.onPause();
 				gl_layout.removeView(myGlSurfaceView);					
@@ -230,38 +242,7 @@ public class MainActivity extends Activity {
 		}
 		
 	}
-		
-//	private void openDialog(){
-//		timeLive=(timeDie-timeStart)/1000.0;
-//		new AlertDialog.Builder(MainActivity.this)
-//		.setTitle("´¢´¢´¢")
-//		.setMessage(df.format(timeLive)+"¨Ì≥Q¿ª§§§F")
-//		.setPositiveButton("µ≤ßÙ", new DialogInterface.OnClickListener(){
-//
-//			@Override
-//			public void onClick(DialogInterface dialog, int which) {
-//				// TODO Auto-generated method stub
-//				MainActivity.this.finish();
-//			}
-//			
-//		})
-//		.setNegativeButton("ƒ~ƒÚ", new DialogInterface.OnClickListener(){
-//
-//			@Override
-//			public void onClick(DialogInterface dialog, int which) {
-//				// TODO Auto-generated method stub
-////				Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("http://android.gasolin.idv.tw/"));
-////				startActivity(intent);											
-//				MyRender.timePrevious=System.currentTimeMillis();
-//				myGlSurfaceView.onResume();				
-////				createTestDieThread();								
-//			}
-//			
-//		})
-//		.show();
-//	}
-
-	
+			
 	//send the msg by starting new game
 	private void sendStrNewGame(){
 		new Thread(new Runnable() {
@@ -290,7 +271,7 @@ public class MainActivity extends Activity {
 	private void handleStrtNewGame(Message msg){
 		if(msg.arg1 > 6){	
 			if(msg.arg1 == 9){
-//				myGlSurfaceView.onResume();		//≠Ï•ª∑Q≠n≈˝≠∏æ˜•˝•X≤{°AGO!∂}©l∞{√{Æ…§~Ø‡≤æ∞ °A¶˝≥oºÀºg§£•i¶Ê
+//				myGlSurfaceView.onResume();		//ÂéüÊú¨ÊÉ≥Ë¶ÅËÆìÈ£õÊ©üÂÖàÂá∫ÁèæÔºåGO!ÈñãÂßãÈñÉÁàçÊôÇÊâçËÉΩÁßªÂãïÔºå‰ΩÜÈÄôÊ®£ÂØ´‰∏çÂèØË°å
 //				myGlSurfaceView.onPause();
 			}							
 			tvStartCD.setText(msg.arg1-6 + "");
@@ -300,7 +281,7 @@ public class MainActivity extends Activity {
 				myGlSurfaceView.onResume();
 				createTestDieThread();	//createTestDieThread while gmae starts running
 			}
-			tvStartCD.setText("GO!");						//GO!∞{√{3¶∏
+			tvStartCD.setText("GO!");						//GO!ÈñÉÁàç3Ê¨°
 			if(msg.arg1 % 2 == 1)
 				tvStartCD.setVisibility(View.INVISIBLE);
 			else
@@ -322,7 +303,7 @@ public class MainActivity extends Activity {
 		new Thread(new Runnable() {			
 			@Override
 			public void run() {
-				while(true){							//™Ω®ÏisDie¨∞true´h∂}±“πÔ∏‹§Ë∂Ù®√∏ı•X∞j∞È
+				while(true){							//Áõ¥Âà∞isDieÁÇ∫trueÂâáÈñãÂïüÂ∞çË©±ÊñπÂ°ä‰∏¶Ë∑≥Âá∫Ëø¥Âúà
 					if(MyRender.isDie == true){						 						
 						myGameHandler.sendEmptyMessage(GameStatus.GAME_HIT.ordinal());						
 						break;
@@ -333,9 +314,8 @@ public class MainActivity extends Activity {
 		}).start();
 	}
 	
-	//≥]≠p≥Q¿ª§§Æ…ºu•X™∫πÔ∏‹Æÿ
-	@Override
-	protected Dialog onCreateDialog(int id) {
+	//Ë®≠Ë®àË¢´Êìä‰∏≠ÊôÇÂΩàÂá∫ÁöÑÂ∞çË©±Ê°Ü
+	private void prepareReviveDialog(){
 		DialogInterface.OnClickListener myListener=new DialogInterface.OnClickListener(){
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
@@ -350,49 +330,37 @@ public class MainActivity extends Activity {
 				}				
 			}			
 		};
+		reviveProgressDialog=new ProgressDialog(this);
+		reviveProgressDialog.setMax(100);	//Ë®≠ÊúÄÂ§ßÂÄºÁÇ∫100
+		reviveProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);	//Ë®≠ÂÆöÊ®£Âºè	
+		reviveProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE, getResources().getString(R.string.revive), myListener);
+		reviveProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getResources().getString(R.string.end), myListener);
+		reviveProgressDialog.setCancelable(false);	//set dialog not to dismiss by touching other where on the screen.				
+	}
 		
-		switch (id) {
-		//332~337 is only called once.
-		case PROGRESSDIALOG_REVIVE:
-			reviveProgressDialog.setMax(100);	//≥]≥Ã§j≠»¨∞100
-			reviveProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);	//≥]©wºÀ¶°	
-			reviveProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE, getResources().getString(R.string.revive), myListener);
-			reviveProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getResources().getString(R.string.end), myListener);
-			reviveProgressDialog.setCancelable(false);	//set dialog not to dismiss by touching other where on the screen. 
-//			Log.d("ABC", "timeLive="+timeLive);
-			break;
-		}		
-		return reviveProgressDialog;
+	//Â∞çË¢´Êìä‰∏≠ÊôÇÂΩàÂá∫ÁöÑÂ∞çË©±Ê°ÜÁöÑÊôÇÁ®ãÊéßÂà∂	
+	private void controlReviveDialog() {		
+		new Thread(new Runnable() {				
+			@Override
+			public void run() {
+				reviveProgressDialog.setProgress(100);
+				for(int i=100;i>=0;i--){
+					if(gameStatus == GameStatus.GAME_REVIVE.ordinal())	//break this for loop when the gameStatus is GAME_REVIVE.
+						break;
+					progressCount=i;
+					myGameHandler.sendEmptyMessage(PROGRESSDIALOG_REVIVE);
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}										
+				}					
+			}
+		}).start();				
 	}
 	
-	//πÔ≥Q¿ª§§Æ…ºu•X™∫πÔ∏‹Æÿ™∫Æ…µ{±±®Ó
-	@Override
-	protected void onPrepareDialog(int id, Dialog dialog) {
-		switch (id) {
-		case PROGRESSDIALOG_REVIVE:
-			new Thread(new Runnable() {				
-				@Override
-				public void run() {
-					reviveProgressDialog.setProgress(100);
-					for(int i=100;i>=0;i--){
-						if(gameStatus == GameStatus.GAME_REVIVE.ordinal())	//break this for loop when the gameStatus is GAME_REVIVE.
-							break;
-						progressCount=i;
-						myGameHandler.sendEmptyMessage(PROGRESSDIALOG_REVIVE);
-						try {
-							Thread.sleep(200);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}										
-					}					
-				}
-			}).start();
-			break;
-		}		
-	}
-	
-	//reviveÆ…≠∏æ˜∞{√{Æƒ™G5sec
+	//reviveÊôÇÈ£õÊ©üÈñÉÁàçÊïàÊûú5sec
 	private void twinklePlane(){
 		new Thread(new Runnable() {
 			
@@ -416,38 +384,38 @@ public class MainActivity extends Activity {
 	
 	@Override
 	protected void onResume() {
-		// TODO Auto-generated method stub
-		Log.d("ABC","onResume()...");
+		// TODO Auto-generated method stub		
 		super.onResume();
+		Log.d("jimbo","onResume()...");
 	}
 	
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
-		Log.d("ABC","onDestroy()...");
+		// TODO Auto-generated method stub		
 		super.onDestroy();
-		android.os.Process.killProcess(android.os.Process.myPid());
+		Log.d("jimbo","onDestroy()...");
+//		android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
-		Log.d("ABC","onPause()...");
+		Log.d("jimbo","onPause()...");
 	}
 
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		Log.d("ABC","onStart()...");
+		Log.d("jimbo","onStart()...");
 	}
 
 	@Override
 	protected void onStop() {
 		// TODO Auto-generated method stub
 		super.onStop();
-		Log.d("ABC","onStop()...");
+		Log.d("jimbo","onStop()...");
 	}
 	
 	@Override
