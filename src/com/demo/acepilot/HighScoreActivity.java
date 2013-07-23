@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -96,7 +97,7 @@ public class HighScoreActivity extends Activity{
 					GameRecords tmpGR = myGameRecordsList.get(getCurrPosition());	//get current GameRecords obj. 
 					int n = myDataBaseHelper.updateData(etOnItem, tmpGR);			//update HighScore set name='xxx' where id=?;
 					if(n > 0){
-//						Toast.makeText(HighScoreActivity.this, "name saved...", Toast.LENGTH_LONG).show();
+						Toast.makeText(HighScoreActivity.this, "name saved...", Toast.LENGTH_LONG).show();
 					}						
 				}
 				Intent myIntent = new Intent();
@@ -276,7 +277,18 @@ public class HighScoreActivity extends Activity{
 		};
 	}
 	
-
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		//lock key_BACK.
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			return true;
+		//lock key_MENU.
+		}else if(keyCode == KeyEvent.KEYCODE_MENU){
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub

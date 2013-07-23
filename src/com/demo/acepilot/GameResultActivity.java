@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -24,6 +25,7 @@ public class GameResultActivity extends Activity{
 	private ImageView ivLevel;
 	private TextView tvCoin,tvScore,tvComment;
 	private Bitmap lvlBitmap;
+	private int imageId;
 	private String comment;
 	private Handler resultHandler;
 	private int coinGet;
@@ -96,7 +98,8 @@ public class GameResultActivity extends Activity{
 					tvComment.setText(comment);					
 					break;
 				case 400:
-					ivLevel.setImageBitmap(lvlBitmap);
+//					ivLevel.setImageBitmap(lvlBitmap);
+					ivLevel.setImageResource(imageId);
 					break;
 				}
 			}
@@ -128,54 +131,78 @@ public class GameResultActivity extends Activity{
 	//generate comment & bitmap to show as lvl by the score.
 	private void makeComment(double d){
 		String[] tmpCommentArray = getResources().getStringArray(R.array.comment_array);
-		if(d < 5){
+		if(d < MyConstant.COMMENT_SEC_RANGE[0]){
 			comment=tmpCommentArray[0];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_01);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_01);	//sys resource wastes more...
+			imageId = R.drawable.lvl_01;
 			level="1";
-		}else if(d < 10){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[1]){
 			comment=tmpCommentArray[1];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_02);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_02);
+			imageId = R.drawable.lvl_02;
 			level="2";
-		}else if(d < 15){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[2]){
 			comment=tmpCommentArray[2];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_03);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_03);
+			imageId = R.drawable.lvl_03;
 			level="3";
-		}else if(d < 20){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[3]){
 			comment=tmpCommentArray[3];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_04);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_04);
+			imageId = R.drawable.lvl_04;
 			level="4";
-		}else if(d < 25){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[4]){
 			comment=tmpCommentArray[4];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_05);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_05);
+			imageId = R.drawable.lvl_05;
 			level="5";
-		}else if(d < 27.5){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[5]){
 			comment=tmpCommentArray[5];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_06);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_06);
+			imageId = R.drawable.lvl_06;
 			level="6";
-		}else if(d < 30){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[6]){
 			comment=tmpCommentArray[6];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_07);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_07);
+			imageId = R.drawable.lvl_07;
 			level="7";
-		}else if(d < 32.5){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[7]){
 			comment=tmpCommentArray[7];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_08);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_08);
+			imageId = R.drawable.lvl_08;
 			level="8";
-		}else if(d < 35){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[8]){
 			comment=tmpCommentArray[8];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_09);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_09);
+			imageId = R.drawable.lvl_09;
 			level="9";
-		}else if(d < 37.5){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[9]){
 			comment=tmpCommentArray[9];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_10);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_10);
+			imageId = R.drawable.lvl_10;
 			level="10";
-		}else if(d < 40){
+		}else if(d < MyConstant.COMMENT_SEC_RANGE[10]){
 			comment=tmpCommentArray[10];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_11);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_11);
+			imageId = R.drawable.lvl_11;
 			level="11";
 		}else{
 			comment=tmpCommentArray[11];
-			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_12);
+//			lvlBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.lvl_12);
+			imageId = R.drawable.lvl_12;
 			level="12";
 		}		
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		//lock key_BACK.
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			return true;
+		//lock key_MENU.
+		}else if(keyCode == KeyEvent.KEYCODE_MENU){
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 }

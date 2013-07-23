@@ -10,24 +10,29 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 //the MainActivity of this proj.
 public class MainActivity extends Activity {
-	private Button btnStart,btnRestart;
+	private Button btnStart,btnQuit,btnHighScore,btnRestart;
 	private ToggleButton btnPauseResume;
 	private TextView tvShowCoin,tvStartCD;					//tvShowCoin, a textView to show how many coins did you get.
 															//tvStartCD, a textView to make the count down-effection when the game starts.  
@@ -42,12 +47,22 @@ public class MainActivity extends Activity {
 	
 	public static MyGameHandler myGameHandler;				//a handler to handle message,include game mode,...etc.
 	public static int gameStatus;							//records the status of the game.
-	public static int coinGet;								//the number of coins which is gotten during one game.
-	public final static int TV_SHOWCOIN=2000;
 	
+	public static int coinGet;								//the number of coins which is gotten during one game.
+	private static int initCoinNeed;						//coin need at first revive.
+	public static int totalCoin;							//the total number of coins user owns.
+	
+	private static int reviveCount;							//the number of the revive count.
+	
+	public final static int TV_SHOWCOIN=2000;
 	private final static int PROGRESSDIALOG_REVIVE=1000;	//give PROGRESSDIALOG_REVIVE a final value,then we can easily identify it.
-	private ProgressDialog reviveProgressDialog;			//obj's reference of ProgressDialog class(物件參考).
-	private int progressCount;								//use to store the count value of progressbar at the moment. 
+	private Dialog reviveDialog;							//obj's reference of Dialog class.
+	private Button btnOkOnDialog, btnNoOnDialog;
+	private ProgressBar proBarOnDialog;
+	private int progressCount;								//use to store the count value of progressbar at the moment.
+	
+	private final static String PREF="PrefSettings";
+	private final static String PREF_TOTAL_COIN="ToatalCoin";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +73,9 @@ public class MainActivity extends Activity {
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//設定螢幕為垂直
 
 		setContentView(R.layout.activity_main);		
+		restorePerf();		//get SharedPreferences.
 		findView();
-		
+				
 		prepareGlSurfaceView();
 		createMyGameHandler();	//initialize myGameHandler 
 		setAllBtn();
@@ -70,23 +86,32 @@ public class MainActivity extends Activity {
 	private void findView(){
 		gl_layout=(RelativeLayout)findViewById(R.id.gl_layout);	//find出frameLayout
 		btnStart=(Button)findViewById(R.id.button1);
+		btnQuit=(Button)findViewById(R.id.button3);
+		btnHighScore=(Button)findViewById(R.id.button4);
 		btnRestart=(Button)findViewById(R.id.button2);
 		btnPauseResume=(ToggleButton)findViewById(R.id.toggleButton1);
 		ivCoin=(ImageView)findViewById(R.id.imageView1);
 		tvShowCoin=(TextView)findViewById(R.id.textView1);
-		tvShowCoin.setText("X"+coinGet);
+		tvShowCoin.setText("X"+totalCoin);
 		tvStartCD=(TextView)findViewById(R.id.textView2);
 		tvStartCD.setText("");	//let tvStartCD become blank at first
+		
 		df=new DecimalFormat("0.000");	//initial df and set pattern
 		prepareReviveDialog();
+		
+		initCoinNeed = 5;
+		reviveCount = 0;
+		coinGet = 0;
 	}
 	
-	//set all btn
+	//set all btn's onClickListener.
 	private void setAllBtn(){				
-		MyOnClickListener myOnClickListener=new MyOnClickListener(); 
-		btnStart.setOnClickListener(myOnClickListener);
-		btnRestart.setOnClickListener(myOnClickListener);
-		btnPauseResume.setOnCheckedChangeListener(myOnClickListener);
+		MyButtonListener myButtonListener=new MyButtonListener(); 
+		btnStart.setOnClickListener(myButtonListener);
+		btnQuit.setOnClickListener(myButtonListener);
+		btnHighScore.setOnClickListener(myButtonListener);
+		btnRestart.setOnClickListener(myButtonListener);
+		btnPauseResume.setOnCheckedChangeListener(myButtonListener);
 	}
 	
 	//prepare myGlSurfaceView
@@ -94,23 +119,21 @@ public class MainActivity extends Activity {
 		myRender=new MyRender();		
 		myRender.setBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.su_30_flanker),
 				BitmapFactory.decodeResource(getResources(), R.drawable.normal_bullet),
-				BitmapFactory.decodeResource(getResources(), R.drawable.star_coin));
+				BitmapFactory.decodeResource(getResources(), R.drawable.coin32x32));
 		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//建立MyGlSurfaceView的物件					
 		myGlSurfaceView.setRenderer(myRender);	//設定render		
 		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout
 		myGlSurfaceView.onPause();			
-		btnStart.bringToFront();	//將按鈕移到最上層
-		btnRestart.bringToFront();
+		//let views to be invisible.
+		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin);	
+		//let views bring to front.		
+		setViewsToFront(btnStart,btnQuit,btnHighScore,tvStartCD);
+		//set view's showing animation.
+		setShowAnimation(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin);
+		//set views to be visible.
+		setViewVisible(btnStart,btnQuit,btnHighScore);
 				
-		btnPauseResume.setVisibility(View.INVISIBLE);
-		btnPauseResume.bringToFront();
-		
-		tvShowCoin.setVisibility(View.INVISIBLE);
-		tvShowCoin.bringToFront();
-		ivCoin.setVisibility(View.INVISIBLE);
-		ivCoin.bringToFront();
-		
-		tvStartCD.bringToFront();
+		btnRestart.bringToFront();
 	}
 	
 	public static class MyGameHandler extends Handler {
@@ -130,11 +153,10 @@ public class MainActivity extends Activity {
 				case 0:
 					break;
 				
-				//GAME_START (按下start後)
+				//GAME_START
 				case 1:		
-					gameStatus=GameStatus.GAME_START.ordinal();	//refresh gameStatus					
-					activity.handleStrtNewGame(msg);						//call startGame()
-					activity.btnStart.setVisibility(View.INVISIBLE);		//hide btnStart 
+					gameStatus=GameStatus.GAME_START.ordinal();				//refresh gameStatus.					
+					activity.handleStrtNewGame(msg);						//call startGame().					
 					break;
 					
 				//GAME_PAUSE
@@ -143,7 +165,7 @@ public class MainActivity extends Activity {
 					activity.myGlSurfaceView.onPause();
 					break;
 				
-				//GAME_RESUME (繼續遊戲)
+				//GAME_RESUME
 				case 3:	
 					gameStatus=GameStatus.GAME_RESUME.ordinal();
 					MyRender.timePrevious=System.currentTimeMillis();
@@ -156,14 +178,21 @@ public class MainActivity extends Activity {
 					activity.myGlSurfaceView.onPause();	//make myGlSurfaceView pause.
 					//setMessage() must writes here because onCreateDialog(int id) is only called once.
 					activity.timeScoreInSec=activity.df.format(activity.timeScore/1000);
-					activity.reviveProgressDialog.setMessage("總共存活"+activity.timeScoreInSec+"秒");
-					activity.reviveProgressDialog.show();
+					TextView tvSec= (TextView)activity.reviveDialog.findViewById(R.id.text_sec);					
+					tvSec.setText(activity.timeScoreInSec+" "+activity.getResources().getString(R.string.sec));
+					TextView tvCoinNeed= (TextView)activity.reviveDialog.findViewById(R.id.textView3);
+					tvCoinNeed.setText(MyConstant.calCurrCoinNeed(initCoinNeed, reviveCount)+"");
+					activity.reviveDialog.show();
+					activity.reviveDialog.getWindow().setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);	//must be called after show();				
 					activity.controlReviveDialog();					
 					break;
 				
 				//GAME_REVIVE
 				case 5:
 					gameStatus=GameStatus.GAME_REVIVE.ordinal();
+					totalCoin -= MyConstant.calCurrCoinNeed(initCoinNeed, reviveCount);	//coinGet-coinNeed.
+					this.sendEmptyMessage(TV_SHOWCOIN);		//update the textView which is showing coinGet.
+					reviveCount++;							//reviveCount+1.
 					MyRender.timePrevious=System.currentTimeMillis();
 					activity.myGlSurfaceView.onResume();				
 					activity.twinklePlane();
@@ -171,7 +200,7 @@ public class MainActivity extends Activity {
 				
 				//GAME_OVER
 				case 6:
-					gameStatus=GameStatus.GAME_OVER.ordinal();
+					gameStatus=GameStatus.GAME_OVER.ordinal();					
 					Intent myIntent=new Intent();
 					myIntent.setClass(activity, GameResultActivity.class);
 					myIntent.putExtra("timeScoreInSec",activity.timeScoreInSec);
@@ -187,14 +216,16 @@ public class MainActivity extends Activity {
 				
 				//針對progressDialog處理
 				case PROGRESSDIALOG_REVIVE:
-					activity.reviveProgressDialog.setProgress(activity.progressCount);
-					if(activity.progressCount == 0)
-						activity.reviveProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+					activity.proBarOnDialog.setProgress(activity.progressCount);
+					if(activity.progressCount == 0){
+						activity.setHideAnimation(activity.btnOkOnDialog);
+						activity.setViewInVisible(activity.btnOkOnDialog);
+					}	
 					break;
 					
 				//針對tvShowCoin處理
 				case TV_SHOWCOIN:
-					activity.tvShowCoin.setText("X"+coinGet);
+					activity.tvShowCoin.setText("X"+totalCoin);
 					break;
 				}	
 	      }
@@ -206,24 +237,38 @@ public class MainActivity extends Activity {
 		myGameHandler=new MyGameHandler(MainActivity.this);
 	}
 	
-	class MyOnClickListener implements OnClickListener,CompoundButton.OnCheckedChangeListener{
-		
+	//
+	class MyButtonListener implements OnClickListener,CompoundButton.OnCheckedChangeListener{		
 		@Override
 		public void onClick(View v) {
 			switch(v.getId()){
-			//start game
+			//btnStart
 			case R.id.button1:					
-				sendStrNewGame();	//call sendStrNewGame()
+				sendStrNewGame();									//call sendStrNewGame().
+				setHideAnimation(btnStart,btnQuit,btnHighScore);	//set view's hidding animation.
+				setViewGone(btnStart,btnQuit,btnHighScore);			//set views to be gone.
 				break;
 			
-			//重新開始
+			//btnRestart
 			case R.id.button2:	
 				myGlSurfaceView.onPause();
 				gl_layout.removeView(myGlSurfaceView);					
 				prepareGlSurfaceView();
 				myGlSurfaceView.onResume();
 				break;
-			}
+			
+			//btnQuit
+			case R.id.button3:
+				MainActivity.this.finish();	//end of the activity.
+				break;
+			
+			//btnHighScore
+			case R.id.button4:
+				Intent myIntent = new Intent(MainActivity.this, HighScoreActivity.class);
+				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(myIntent);
+				break;	
+			}			
 		}
 		
 		//pause,resume's event.
@@ -249,12 +294,12 @@ public class MainActivity extends Activity {
 			Message msg;
 			@Override
 			public void run() {							
-				for(int i=9;i>=0;i--){								
+				for(int i=12;i>=0;i--){								
 					try {
 						if(i > 6)
-							Thread.sleep(1000);	//show 3.2.1...wait 1s
+							Thread.sleep(500);	//show 3.2.1...delay 1s.
 						else
-							Thread.sleep(500);	//show GO! wait 0.5s
+							Thread.sleep(350);	//show GO!delay 0.5s.
 					} catch (InterruptedException e) {									
 						e.printStackTrace();
 					}
@@ -270,29 +315,37 @@ public class MainActivity extends Activity {
 	//handle the msg by starting new game
 	private void handleStrtNewGame(Message msg){
 		if(msg.arg1 > 6){	
-			if(msg.arg1 == 9){
+			if(msg.arg1 == 12){
 //				myGlSurfaceView.onResume();		//原本想要讓飛機先出現，GO!開始閃爍時才能移動，但這樣寫不可行
 //				myGlSurfaceView.onPause();
-			}							
-			tvStartCD.setText(msg.arg1-6 + "");
-		}
-		else{						
-			if(msg.arg1 == 6){
-				myGlSurfaceView.onResume();
-				createTestDieThread();	//createTestDieThread while gmae starts running
 			}
-			tvStartCD.setText("GO!");						//GO!閃爍3次
-			if(msg.arg1 % 2 == 1)
-				tvStartCD.setVisibility(View.INVISIBLE);
-			else
-				tvStartCD.setVisibility(View.VISIBLE);						
-									
-			if(msg.arg1 == 0){
-				tvStartCD.setVisibility(View.GONE);
-				btnPauseResume.setVisibility(View.VISIBLE);	//btnPauseResume appears
-				ivCoin.setVisibility(View.VISIBLE);
-				tvShowCoin.setVisibility(View.VISIBLE);
-				timeStart=System.currentTimeMillis();	//get timeStart value
+			
+			if(msg.arg1 % 2 == 1){
+				setHideAnimation(tvStartCD);
+				setViewInVisible(tvStartCD);
+			}else{				
+				tvStartCD.setText((msg.arg1-6)/2 + "");				
+				setShowAnimation(tvStartCD);
+				setViewVisible(tvStartCD);					
+			}																				
+		}else{						
+			if(msg.arg1 == 6){				
+				myGlSurfaceView.onResume();
+				createTestDieThread();			//createTestDieThread while gmae starts running
+			}
+			
+			if(msg.arg1 % 2 == 1){
+				setHideAnimation(tvStartCD);
+				setViewInVisible(tvStartCD);
+			}else if(msg.arg1 != 0){				
+				tvStartCD.setText("GO!");
+				setShowAnimation(tvStartCD);
+				setViewVisible(tvStartCD);			
+			}else{
+				setViewGone(tvStartCD);
+				setViewsToFront(btnPauseResume,ivCoin,tvShowCoin);	//let views bring to front.
+				setViewVisible(btnPauseResume,ivCoin,tvShowCoin);	//set views to be visible.			
+				timeStart=System.currentTimeMillis();				//get timeStart value
 			}	
 		}					
 	}
@@ -316,26 +369,39 @@ public class MainActivity extends Activity {
 	
 	//設計被擊中時彈出的對話框
 	private void prepareReviveDialog(){
-		DialogInterface.OnClickListener myListener=new DialogInterface.OnClickListener(){
+		View.OnClickListener myListener=new View.OnClickListener(){
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				switch (which) {
-				case DialogInterface.BUTTON_POSITIVE:
-					myGameHandler.sendEmptyMessage(GameStatus.GAME_REVIVE.ordinal());
-					timeStart = System.currentTimeMillis();
+			public void onClick(View v) {
+				switch (v.getId()) {
+				//btnOk
+				case R.id.button1:
+					if(totalCoin >= MyConstant.calCurrCoinNeed(initCoinNeed, reviveCount)){
+						myGameHandler.sendEmptyMessage(GameStatus.GAME_REVIVE.ordinal());
+						reviveDialog.cancel();	//close dialog.
+						timeStart = System.currentTimeMillis();
+					}else{
+						
+					}					
 					break;
-				case DialogInterface.BUTTON_NEGATIVE:
+				//btnNo
+				case R.id.button2:
 					myGameHandler.sendEmptyMessage(GameStatus.GAME_OVER.ordinal());
 					break;	
 				}				
 			}			
 		};
-		reviveProgressDialog=new ProgressDialog(this);
-		reviveProgressDialog.setMax(100);	//設最大值為100
-		reviveProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);	//設定樣式	
-		reviveProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE, getResources().getString(R.string.revive), myListener);
-		reviveProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getResources().getString(R.string.end), myListener);
-		reviveProgressDialog.setCancelable(false);	//set dialog not to dismiss by touching other where on the screen.				
+		reviveDialog = new Dialog(MainActivity.this, R.style.TANCStyle);
+		reviveDialog.setContentView(R.layout.my_progressdialog_layout);		
+		
+		proBarOnDialog = (ProgressBar)reviveDialog.findViewById(R.id.progressBar1);
+		proBarOnDialog.setMax(100);	//設最大值為100
+			
+		btnOkOnDialog = (Button)reviveDialog.findViewById(R.id.button1);
+		btnNoOnDialog = (Button)reviveDialog.findViewById(R.id.button2);
+		btnOkOnDialog.setOnClickListener(myListener);
+		btnNoOnDialog.setOnClickListener(myListener);
+				
+		reviveDialog.setCancelable(false);	//set dialog not to dismiss by touching other where on the screen.				
 	}
 		
 	//對被擊中時彈出的對話框的時程控制	
@@ -343,9 +409,10 @@ public class MainActivity extends Activity {
 		new Thread(new Runnable() {				
 			@Override
 			public void run() {
-				reviveProgressDialog.setProgress(100);
+				proBarOnDialog.setProgress(100);
 				for(int i=100;i>=0;i--){
-					if(gameStatus == GameStatus.GAME_REVIVE.ordinal())	//break this for loop when the gameStatus is GAME_REVIVE.
+					//break this for loop when the gameStatus is GAME_REVIVE or GAME_OVER.
+					if(gameStatus == GameStatus.GAME_REVIVE.ordinal() || gameStatus == GameStatus.GAME_OVER.ordinal())	
 						break;
 					progressCount=i;
 					myGameHandler.sendEmptyMessage(PROGRESSDIALOG_REVIVE);
@@ -382,6 +449,52 @@ public class MainActivity extends Activity {
 		}).start();		
 	}
 	
+	//get SharedPreferences.
+	private void restorePerf(){
+		SharedPreferences settings = getSharedPreferences(PREF, 0);
+		totalCoin = settings.getInt(PREF_TOTAL_COIN,0);		
+	}
+	
+	//set views to bring to Front.
+	private void setViewsToFront(View... view){
+		for(View v:view)
+			v.bringToFront();
+	}
+	
+	//set views to be gone.
+	private void setViewGone(View... view){
+		for(View v:view)
+			v.setVisibility(View.GONE);
+	}
+	
+	//set views to be invisible.
+	private void setViewInVisible(View... view){
+		for(View v:view)
+			v.setVisibility(View.INVISIBLE);
+	}
+	
+	//set views to be visible.
+	private void setViewVisible(View... view){
+		for(View v:view)
+			v.setVisibility(View.VISIBLE);
+	}
+	
+	//set view's showing animation.
+	private void setShowAnimation(View... view){
+		for(View v:view){
+			v.clearAnimation();
+			v.setAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.show));
+		}	
+	}
+	
+	//set view's hidding animation.
+	private void setHideAnimation(View... view){
+		for(View v:view){
+			v.clearAnimation();
+			v.setAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.hidden));
+		}	
+	}
+	
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub		
@@ -402,6 +515,9 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 		super.onPause();
 		Log.d("jimbo","onPause()...");
+		//store SharedPreferences.
+		SharedPreferences sp = getSharedPreferences(PREF, 0);
+		sp.edit().putInt(PREF_TOTAL_COIN, totalCoin).commit();
 	}
 
 	@Override
@@ -424,4 +540,18 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		//lock key_BACK.
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			return true;
+		//lock key_MENU.
+		}else if(keyCode == KeyEvent.KEYCODE_MENU){
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	
+	
 }

@@ -24,7 +24,6 @@
         <item>出神入化</item>
         <item>天下無敵</item>
     </string-array>
-    <string name="end">END</string>
     <string name="hign_score">HIGH SCORE</string>
     <string-array name="rank">
         <item >1st</item>
@@ -34,5 +33,7 @@
         <item >5th</item>
     </string-array>
     <string name="back_main">BACK MAIN</string>
+    <string name="sec">sec</string>
+    <string name="quit">QUIT</string>
 
 </resources>

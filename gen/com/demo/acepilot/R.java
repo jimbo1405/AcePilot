@@ -8,75 +8,90 @@
 package com.demo.acepilot;
 
 public final class R {
+    public static final class anim {
+        public static final int hidden=0x7f040000;
+        public static final int show=0x7f040001;
+    }
     public static final class array {
-        public static final int comment_array=0x7f050000;
-        public static final int rank=0x7f050001;
+        public static final int comment_array=0x7f060000;
+        public static final int rank=0x7f060001;
     }
     public static final class attr {
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
-        public static final int lvl_01=0x7f020001;
-        public static final int lvl_02=0x7f020002;
-        public static final int lvl_03=0x7f020003;
-        public static final int lvl_04=0x7f020004;
-        public static final int lvl_05=0x7f020005;
-        public static final int lvl_06=0x7f020006;
-        public static final int lvl_07=0x7f020007;
-        public static final int lvl_08=0x7f020008;
-        public static final int lvl_09=0x7f020009;
-        public static final int lvl_10=0x7f02000a;
-        public static final int lvl_11=0x7f02000b;
-        public static final int lvl_12=0x7f02000c;
-        public static final int megafono=0x7f02000d;
-        public static final int normal_bullet=0x7f02000e;
-        public static final int star_coin=0x7f02000f;
-        public static final int star_coin_64px=0x7f020010;
-        public static final int su_30_flanker=0x7f020011;
-        public static final int timer_64px=0x7f020012;
+        public static final int clock74x74=0x7f020000;
+        public static final int coin32x32=0x7f020001;
+        public static final int coin74x74=0x7f020002;
+        public static final int ic_launcher=0x7f020003;
+        public static final int lvl_01=0x7f020004;
+        public static final int lvl_02=0x7f020005;
+        public static final int lvl_03=0x7f020006;
+        public static final int lvl_04=0x7f020007;
+        public static final int lvl_05=0x7f020008;
+        public static final int lvl_06=0x7f020009;
+        public static final int lvl_07=0x7f02000a;
+        public static final int lvl_08=0x7f02000b;
+        public static final int lvl_09=0x7f02000c;
+        public static final int lvl_10=0x7f02000d;
+        public static final int lvl_11=0x7f02000e;
+        public static final int lvl_12=0x7f02000f;
+        public static final int normal_bullet=0x7f020010;
+        public static final int opaque418x178=0x7f020011;
+        public static final int su_30_flanker=0x7f020012;
+        public static final int talk74x74=0x7f020013;
     }
     public static final class id {
-        public static final int button1=0x7f080002;
-        public static final int button2=0x7f080003;
-        public static final int editText1=0x7f080010;
-        public static final int game_result_layout=0x7f080007;
-        public static final int gl_layout=0x7f080000;
-        public static final int high_score_layout=0x7f08000d;
-        public static final int imageView1=0x7f080005;
-        public static final int imageView2=0x7f080008;
-        public static final int imageView3=0x7f080009;
-        public static final int imageView4=0x7f08000c;
-        public static final int listView1=0x7f08000e;
-        public static final int menu_settings=0x7f080011;
-        public static final int my_listview_layout=0x7f08000f;
-        public static final int textView1=0x7f080006;
-        public static final int textView2=0x7f080001;
-        public static final int textView3=0x7f08000a;
-        public static final int textView4=0x7f08000b;
-        public static final int toggleButton1=0x7f080004;
+        public static final int RelativeLayout1=0x7f090015;
+        public static final int RelativeLayout2=0x7f090016;
+        public static final int RelativeLayout3=0x7f090018;
+        public static final int button1=0x7f090005;
+        public static final int button2=0x7f090001;
+        public static final int button3=0x7f090006;
+        public static final int button4=0x7f090007;
+        public static final int editText1=0x7f090011;
+        public static final int game_result_layout=0x7f090009;
+        public static final int gl_layout=0x7f090000;
+        public static final int high_score_layout=0x7f09000e;
+        public static final int imageView1=0x7f090004;
+        public static final int imageView2=0x7f09000a;
+        public static final int imageView3=0x7f09000c;
+        public static final int imageView4=0x7f09000d;
+        public static final int linear_layout1=0x7f090012;
+        public static final int listView1=0x7f09000f;
+        public static final int menu_settings=0x7f090019;
+        public static final int my_listview_layout=0x7f090010;
+        public static final int progressBar1=0x7f090017;
+        public static final int textView1=0x7f090003;
+        public static final int textView2=0x7f090008;
+        public static final int textView3=0x7f09000b;
+        public static final int text_sec=0x7f090013;
+        public static final int text_survive=0x7f090014;
+        public static final int toggleButton1=0x7f090002;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
         public static final int game_result_layout=0x7f030001;
         public static final int high_score_layout=0x7f030002;
         public static final int my_listview_layout=0x7f030003;
+        public static final int my_progressdialog_layout=0x7f030004;
     }
     public static final class menu {
-        public static final int activity_main=0x7f070000;
+        public static final int activity_main=0x7f080000;
     }
     public static final class string {
-        public static final int app_name=0x7f040000;
-        public static final int back_main=0x7f04000b;
-        public static final int continu=0x7f040007;
-        public static final int end=0x7f040009;
-        public static final int hello_world=0x7f040001;
-        public static final int hign_score=0x7f04000a;
-        public static final int level=0x7f040008;
-        public static final int menu_settings=0x7f040002;
-        public static final int pause=0x7f040005;
-        public static final int resume=0x7f040004;
-        public static final int revive=0x7f040006;
-        public static final int start=0x7f040003;
+        public static final int app_name=0x7f050000;
+        public static final int back_main=0x7f05000a;
+        public static final int continu=0x7f050007;
+        public static final int hello_world=0x7f050001;
+        public static final int hign_score=0x7f050009;
+        public static final int level=0x7f050008;
+        public static final int menu_settings=0x7f050002;
+        public static final int pause=0x7f050005;
+        public static final int quit=0x7f05000c;
+        public static final int resume=0x7f050004;
+        public static final int revive=0x7f050006;
+        public static final int sec=0x7f05000b;
+        public static final int start=0x7f050003;
     }
     public static final class style {
         /** 
@@ -100,10 +115,20 @@ public final class R {
     
  API 14 theme customizations can go here. 
          */
-        public static final int AppBaseTheme=0x7f060000;
+        public static final int AppBaseTheme=0x7f070000;
         /**  Application theme. 
  All customizations that are NOT specific to a particular API-level can go here. 
          */
-        public static final int AppTheme=0x7f060001;
+        public static final int AppTheme=0x7f070001;
+        /**  實現透明style 
+         */
+        public static final int TANCStyle=0x7f070002;
+        /**   
+    <style name="TitleStyle" parent="@android:style/DialogWindowTitle">
+        <item name="android:textAppearance">@style/TitleText</item>
+    </style> 
+    
+         */
+        public static final int TitleText=0x7f070003;
     }
 }

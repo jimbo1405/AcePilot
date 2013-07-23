@@ -335,7 +335,8 @@ public class MyRender implements Renderer{
 				double tmpDistance=Math.sqrt(tmp_dx*tmp_dx + tmp_dy*tmp_dy);	//coin與圓心的距離
 				if(tmpDistance <= tmpPC.getR()){	
 					coinList.remove(index);
-					MainActivity.coinGet++;					
+					MainActivity.coinGet++;
+					MainActivity.totalCoin++;
 					MainActivity.myGameHandler.sendEmptyMessage(MainActivity.TV_SHOWCOIN);
 					break;
 				}					
