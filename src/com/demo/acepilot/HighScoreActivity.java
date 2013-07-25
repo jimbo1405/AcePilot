@@ -8,6 +8,8 @@ import java.util.Map;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,6 +32,8 @@ import android.widget.Toast;
 
 //this activity binds with high_score_layout.
 public class HighScoreActivity extends Activity{
+	private SoundPool sp;
+	private int clickSound1;
 	
 	private Button btnBackMain;
 	private ListView myListView;
@@ -49,6 +53,7 @@ public class HighScoreActivity extends Activity{
 	private InputMethodManager imManager;				//an obj to  control the soft keyboard.	
 	private boolean openSoftKeyboardFlag = true;
 	private boolean etOnItemReadyFlag = false;
+	public static boolean updateFlag; 					//check if need to execute updateHighScore(currGameRecords).
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +63,8 @@ public class HighScoreActivity extends Activity{
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//set full screen.
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);											//set protrait screen.
 		setContentView(R.layout.high_score_layout);
+		
+		initSoundResource();
 		findView();
 		
 		imManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
@@ -67,13 +74,20 @@ public class HighScoreActivity extends Activity{
 			myDataBaseHelper=new DataBaseHelper(HighScoreActivity.this);
 		
 		currGameRecords = getCurrGameRecords();			//get current GameRecords obj. 
-		updateHighScore(currGameRecords);				//update database.
+		if(updateFlag)
+			updateHighScore(currGameRecords);			//update database.
 		showListView();									//show the listView.
 		if(beatRecordFlag == true){						//if it gets top 5, request the focus of editText at the specified item of myListView. 
 			requestInputName();						
 		}
 		
 		btnBackMain.setOnClickListener(myOnClickListener);
+	}
+	
+	//init sound source.
+	private void initSoundResource(){		
+		sp = new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
+		clickSound1 = sp.load(HighScoreActivity.this, R.raw.cameraflash, 1);
 	}
 	
 	private void findView(){
@@ -93,6 +107,7 @@ public class HighScoreActivity extends Activity{
 				break;
 				
 			case R.id.button1:
+				sp.play(clickSound1, 1, 1, 0, 0, 1);
 				if(beatRecordFlag == true && etOnItemReadyFlag == true){	
 					GameRecords tmpGR = myGameRecordsList.get(getCurrPosition());	//get current GameRecords obj. 
 					int n = myDataBaseHelper.updateData(etOnItem, tmpGR);			//update HighScore set name='xxx' where id=?;
@@ -293,13 +308,32 @@ public class HighScoreActivity extends Activity{
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
+		Log.d("jimbo","HighScore onPause()...");
 		if(myDataBaseHelper != null)
-			myDataBaseHelper.close();
+			myDataBaseHelper.close();		
+	}
+	
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		Log.d("jimbo","HighScore onStop()...");
 	}
 
 	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		Log.d("jimbo","HighScore onDestroy()...");
+		if(sp != null){
+			sp.release();
+			sp = null;
+		}
+	}
+	
+	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
-		super.onResume();
-	}
+		super.onResume();		
+	}	
 }

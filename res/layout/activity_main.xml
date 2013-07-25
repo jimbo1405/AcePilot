@@ -6,16 +6,6 @@
     android:orientation="vertical"
     tools:context=".MainActivity" >
 
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:background="@android:color/transparent"
-        android:text="Button"
-        android:textColor="#00FF00" />
-
     <ToggleButton
         android:id="@+id/toggleButton1"
         android:layout_width="wrap_content"
@@ -90,5 +80,25 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:src="@drawable/coin32x32" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView1"
+        android:layout_toLeftOf="@+id/textView2"
+        android:background="@android:color/transparent"
+        android:text="Button"
+        android:textColor="#00FF00" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp"
+        android:src="@drawable/soundopen40x40" />
 
 </RelativeLayout>

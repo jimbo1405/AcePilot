@@ -2,13 +2,15 @@ package com.demo.acepilot;
 
 import java.lang.ref.WeakReference;
 import java.text.DecimalFormat;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
+import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -32,11 +34,20 @@ import android.widget.ToggleButton;
 
 //the MainActivity of this proj.
 public class MainActivity extends Activity {
+	private AudioManager audioManager;
+	private boolean SoundEnabled;
+	private int currVolumeIndex;
+	public static SoundPool sp;
+	private int clickSound1,explosionSound,banSound;
+	public static int coinSound;
+	private MediaPlayer mpMainMenu;
+	private MediaPlayer mpPlaying;
+	
 	private Button btnStart,btnQuit,btnHighScore,btnRestart;
 	private ToggleButton btnPauseResume;
 	private TextView tvShowCoin,tvStartCD;					//tvShowCoin, a textView to show how many coins did you get.
 															//tvStartCD, a textView to make the count down-effection when the game starts.  
-	private ImageView ivCoin;
+	private ImageView ivCoin,ivSound;
 	private MyGlSurfaceView myGlSurfaceView;
 	private MyRender myRender; 
 	private RelativeLayout gl_layout;
@@ -71,8 +82,10 @@ public class MainActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//設定全螢幕
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//設定螢幕為垂直
-
-		setContentView(R.layout.activity_main);		
+				
+		initSoundResource();	//init sound source.
+		setContentView(R.layout.activity_main);	
+		
 		restorePerf();		//get SharedPreferences.
 		findView();
 				
@@ -82,7 +95,7 @@ public class MainActivity extends Activity {
 
 	}
 	
-	//find出元件
+	//find view.
 	private void findView(){
 		gl_layout=(RelativeLayout)findViewById(R.id.gl_layout);	//find出frameLayout
 		btnStart=(Button)findViewById(R.id.button1);
@@ -91,6 +104,14 @@ public class MainActivity extends Activity {
 		btnRestart=(Button)findViewById(R.id.button2);
 		btnPauseResume=(ToggleButton)findViewById(R.id.toggleButton1);
 		ivCoin=(ImageView)findViewById(R.id.imageView1);
+		ivSound=(ImageView)findViewById(R.id.imageView2);
+		
+        if (SoundEnabled) {
+        	ivSound.setImageResource(R.drawable.soundopen40x40);        	
+        } else {
+        	ivSound.setImageResource(R.drawable.soundclose40x40);       	
+        }
+		
 		tvShowCoin=(TextView)findViewById(R.id.textView1);
 		tvShowCoin.setText("X"+totalCoin);
 		tvStartCD=(TextView)findViewById(R.id.textView2);
@@ -104,6 +125,27 @@ public class MainActivity extends Activity {
 		coinGet = 0;
 	}
 	
+	//init sound source.
+	private void initSoundResource(){
+		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+		
+		if(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) > 0)
+			SoundEnabled = true;
+		else
+			SoundEnabled = false;
+			
+		sp = new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
+		clickSound1 = sp.load(MainActivity.this, R.raw.cameraflash, 1);
+		explosionSound = sp.load(MainActivity.this, R.raw.explode3, 1);
+		coinSound = sp.load(MainActivity.this, R.raw.money, 1);
+		banSound = sp.load(MainActivity.this, R.raw.nono, 1);
+		
+		mpMainMenu = MediaPlayer.create(MainActivity.this, R.raw.superheros1);					
+		mpMainMenu.setLooping(true);
+		mpPlaying =  MediaPlayer.create(MainActivity.this, R.raw.superheros2);	
+		mpPlaying.setLooping(true);
+	}
+	
 	//set all btn's onClickListener.
 	private void setAllBtn(){				
 		MyButtonListener myButtonListener=new MyButtonListener(); 
@@ -112,6 +154,7 @@ public class MainActivity extends Activity {
 		btnHighScore.setOnClickListener(myButtonListener);
 		btnRestart.setOnClickListener(myButtonListener);
 		btnPauseResume.setOnCheckedChangeListener(myButtonListener);
+		ivSound.setOnClickListener(myButtonListener);
 	}
 	
 	//prepare myGlSurfaceView
@@ -125,15 +168,15 @@ public class MainActivity extends Activity {
 		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout
 		myGlSurfaceView.onPause();			
 		//let views to be invisible.
-		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin);	
+		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin,ivSound);	
 		//let views bring to front.		
-		setViewsToFront(btnStart,btnQuit,btnHighScore,tvStartCD);
+		setViewsToFront(btnStart,btnQuit,btnHighScore,tvStartCD,ivSound);
 		//set view's showing animation.
-		setShowAnimation(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin);
+		setShowAnimation(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin,ivSound);
 		//set views to be visible.
-		setViewVisible(btnStart,btnQuit,btnHighScore);
+		setViewVisible(btnStart,btnQuit,btnHighScore,ivSound);
 				
-		btnRestart.bringToFront();
+//		btnRestart.bringToFront();
 	}
 	
 	public static class MyGameHandler extends Handler {
@@ -212,9 +255,13 @@ public class MainActivity extends Activity {
 				//GAME_HIGHSCORE
 				case 7:
 					gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();
+					Intent intent = new Intent(activity, HighScoreActivity.class);
+					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					HighScoreActivity.updateFlag = false;	//updateFlag must be false when go to highscore page from main page directly.
+					activity.startActivity(intent);
 					break;	
 				
-				//針對progressDialog處理
+				//handle for progressDialog.
 				case PROGRESSDIALOG_REVIVE:
 					activity.proBarOnDialog.setProgress(activity.progressCount);
 					if(activity.progressCount == 0){
@@ -223,10 +270,12 @@ public class MainActivity extends Activity {
 					}	
 					break;
 					
-				//針對tvShowCoin處理
+				//handle for tvShowCoin.
 				case TV_SHOWCOIN:
 					activity.tvShowCoin.setText("X"+totalCoin);
 					break;
+					
+					
 				}	
 	      }
 	    }
@@ -244,9 +293,19 @@ public class MainActivity extends Activity {
 			switch(v.getId()){
 			//btnStart
 			case R.id.button1:					
+				sp.play(clickSound1, 1, 1, 0, 0, 1);
 				sendStrNewGame();									//call sendStrNewGame().
 				setHideAnimation(btnStart,btnQuit,btnHighScore);	//set view's hidding animation.
 				setViewGone(btnStart,btnQuit,btnHighScore);			//set views to be gone.
+				
+				if(mpMainMenu != null){
+					if(mpMainMenu.isPlaying())
+						mpMainMenu.stop();
+					mpMainMenu.release();
+					mpMainMenu = null;
+				}
+				
+				mpPlaying.start();
 				break;
 			
 			//btnRestart
@@ -259,16 +318,29 @@ public class MainActivity extends Activity {
 			
 			//btnQuit
 			case R.id.button3:
+				sp.play(clickSound1, 1, 1, 0, 0, 1);
 				MainActivity.this.finish();	//end of the activity.
 				break;
 			
 			//btnHighScore
 			case R.id.button4:
-				Intent myIntent = new Intent(MainActivity.this, HighScoreActivity.class);
-				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(myIntent);
-				break;	
-			}			
+				sp.play(clickSound1, 1, 1, 0, 0, 1);
+				myGameHandler.sendEmptyMessage(GameStatus.GAME_HIGHSCORE.ordinal());
+				break;
+				
+			//ivSound
+			case R.id.imageView2:								
+				if (SoundEnabled) {             
+					currVolumeIndex = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+					ivSound.setImageResource(R.drawable.soundclose40x40);
+                	audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);                   
+                } else {
+                	ivSound.setImageResource(R.drawable.soundopen40x40);
+                	audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currVolumeIndex, 0);                	
+                }
+				SoundEnabled = !SoundEnabled;
+				break;
+			}
 		}
 		
 		//pause,resume's event.
@@ -358,6 +430,7 @@ public class MainActivity extends Activity {
 			public void run() {
 				while(true){							//直到isDie為true則開啟對話方塊並跳出迴圈
 					if(MyRender.isDie == true){						 						
+						sp.play(explosionSound, 1, 1, 0, 0, 1);
 						myGameHandler.sendEmptyMessage(GameStatus.GAME_HIT.ordinal());						
 						break;
 					}
@@ -376,15 +449,17 @@ public class MainActivity extends Activity {
 				//btnOk
 				case R.id.button1:
 					if(totalCoin >= MyConstant.calCurrCoinNeed(initCoinNeed, reviveCount)){
+						sp.play(clickSound1, 1, 1, 0, 0, 1);
 						myGameHandler.sendEmptyMessage(GameStatus.GAME_REVIVE.ordinal());
 						reviveDialog.cancel();	//close dialog.
 						timeStart = System.currentTimeMillis();
 					}else{
-						
+						sp.play(banSound, 1, 1, 0, 0, 1);
 					}					
 					break;
 				//btnNo
 				case R.id.button2:
+					sp.play(clickSound1, 1, 1, 0, 0, 1);
 					myGameHandler.sendEmptyMessage(GameStatus.GAME_OVER.ordinal());
 					break;	
 				}				
@@ -452,7 +527,8 @@ public class MainActivity extends Activity {
 	//get SharedPreferences.
 	private void restorePerf(){
 		SharedPreferences settings = getSharedPreferences(PREF, 0);
-		totalCoin = settings.getInt(PREF_TOTAL_COIN,0);		
+		totalCoin = settings.getInt(PREF_TOTAL_COIN,0);
+		currVolumeIndex = settings.getInt("currVolumeIndex",0);
 	}
 	
 	//set views to bring to Front.
@@ -499,7 +575,8 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		// TODO Auto-generated method stub		
 		super.onResume();
-		Log.d("jimbo","onResume()...");
+		Log.d("jimbo","onResume()...");		
+		mpMainMenu.start();
 	}
 	
 	@Override
@@ -508,6 +585,27 @@ public class MainActivity extends Activity {
 		super.onDestroy();
 		Log.d("jimbo","onDestroy()...");
 //		android.os.Process.killProcess(android.os.Process.myPid());
+		if(mpPlaying != null){
+			Log.d("jimbo","xxxxx");
+			if(mpPlaying.isPlaying()){
+				Log.d("jimbo","xxxxx");
+				mpPlaying.stop();
+			}				
+			mpPlaying.release();
+			mpPlaying = null;
+		}
+		
+		if(mpMainMenu != null){
+			if(mpMainMenu.isPlaying())
+				mpMainMenu.stop();
+			mpMainMenu.release();
+			mpMainMenu = null;
+		}
+		
+		if(sp != null){
+			sp.release();
+			sp = null;
+		}		
 	}
 
 	@Override
@@ -517,7 +615,10 @@ public class MainActivity extends Activity {
 		Log.d("jimbo","onPause()...");
 		//store SharedPreferences.
 		SharedPreferences sp = getSharedPreferences(PREF, 0);
-		sp.edit().putInt(PREF_TOTAL_COIN, totalCoin).commit();
+		sp.edit()
+		.putInt(PREF_TOTAL_COIN, totalCoin)
+		.putInt("currVolumeIndex", currVolumeIndex)
+		.commit();
 	}
 
 	@Override
@@ -550,8 +651,14 @@ public class MainActivity extends Activity {
 		}else if(keyCode == KeyEvent.KEYCODE_MENU){
 			return true;
 		}
+		
+		//adjust volume key
+		if(keyCode == event.KEYCODE_VOLUME_DOWN){
+			if(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) == 1)	//why is 1?so tricky...
+				ivSound.setImageResource(R.drawable.soundclose40x40);
+		}else if(keyCode == event.KEYCODE_VOLUME_UP){
+				ivSound.setImageResource(R.drawable.soundopen40x40);
+		}
 		return super.onKeyDown(keyCode, event);
-	}
-	
-	
+	}	
 }

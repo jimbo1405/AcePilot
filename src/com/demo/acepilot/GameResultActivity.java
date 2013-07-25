@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,7 +22,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class GameResultActivity extends Activity{
-
+	private SoundPool sp;
+	private int clickSound1;
+	
 	private Button btnContinue;
 	private ImageView ivLevel;
 	private TextView tvCoin,tvScore,tvComment;
@@ -40,7 +44,10 @@ public class GameResultActivity extends Activity{
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//設定全螢幕
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//設定螢幕為垂直
 		setContentView(R.layout.game_result_layout);
+		
+		initSoundResource();		
 		findView();
+		
 		createGameResultHandler();
 		
 		coinGet=this.getIntent().getIntExtra("coinGet", 0);
@@ -49,6 +56,12 @@ public class GameResultActivity extends Activity{
 		
 		sendShowResultMsg();
 		registerBtnContinue();
+	}
+	
+	//init sound source.
+	private void initSoundResource(){
+		sp = new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
+		clickSound1 = sp.load(GameResultActivity.this, R.raw.cameraflash, 1);
 	}
 	
 	private void findView(){
@@ -69,11 +82,13 @@ public class GameResultActivity extends Activity{
 			
 			@Override
 			public void onClick(View v) {
+				sp.play(clickSound1, 1, 1, 0, 0, 1);
 				Intent myIntent=new Intent();
 				myIntent.setClass(GameResultActivity.this, HighScoreActivity.class);
 				myIntent.putExtra("score", score);
 				myIntent.putExtra("level", level);
 				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //注意本行的FLAG设置
+				HighScoreActivity.updateFlag = true;	//updateFlag must be false when go to highscore page from GameResult page directly.
 				startActivity(myIntent);
 			}
 		});
@@ -204,5 +219,33 @@ public class GameResultActivity extends Activity{
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+	}
+
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+	}
+	
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+	}
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		if(sp != null){
+			sp.release();
+			sp = null;
+		}
 	}
 }

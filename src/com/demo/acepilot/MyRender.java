@@ -334,6 +334,7 @@ public class MyRender implements Renderer{
 				double tmp_dy=c.getCoin_positionY() - tmpPC.getpCircle_positionY();	//coinY-圓心Y
 				double tmpDistance=Math.sqrt(tmp_dx*tmp_dx + tmp_dy*tmp_dy);	//coin與圓心的距離
 				if(tmpDistance <= tmpPC.getR()){	
+					MainActivity.sp.play(MainActivity.coinSound, 1, 1, 0, 0, 1);
 					coinList.remove(index);
 					MainActivity.coinGet++;
 					MainActivity.totalCoin++;
