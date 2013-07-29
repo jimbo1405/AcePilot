@@ -31,36 +31,11 @@
 
     <Button
         android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="139dp"
+        android:layout_height="39dp"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:background="@android:color/transparent"
-        android:text="@string/start"
-        android:textColor="#00FF00"
-        android:textSize="30dp" />
-
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/button1"
-        android:layout_centerHorizontal="true"
-        android:background="@android:color/transparent"
-        android:text="@string/quit"
-        android:textColor="#00FF00"
-        android:textSize="18dp" />
-
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/button1"
-        android:layout_centerHorizontal="true"
-        android:background="@android:color/transparent"
-        android:text="@string/hign_score"
-        android:textColor="#00FF00"
-        android:textSize="18dp" />
+        android:background="@drawable/btn_start_selector" />
 
     <TextView
         android:id="@+id/textView2"
@@ -100,5 +75,23 @@
         android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
         android:src="@drawable/soundopen40x40" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="139dp"
+        android:layout_height="39dp"
+        android:layout_alignLeft="@+id/button1"
+        android:layout_below="@+id/button1"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/btn_quit_selector" />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="139dp"
+        android:layout_height="39dp"
+        android:layout_above="@+id/button1"
+        android:layout_alignLeft="@+id/button1"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/btn_highscore_selector" />
 
 </RelativeLayout>

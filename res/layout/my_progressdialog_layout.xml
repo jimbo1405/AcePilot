@@ -8,29 +8,30 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp">
+        android:layout_height="45dp">
 
         <TextView
             android:id="@+id/text_sec"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_marginLeft="40dp"
-            android:layout_toRightOf="@+id/text_survive"
-            android:textColor="#00FF00"
+            android:layout_alignBaseline="@+id/text_survive"
+            android:layout_alignBottom="@+id/text_survive"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="36dp"
             android:background="#0000"
             android:text="5.678 sec"
+            android:textColor="#00FF00"
             android:textSize="25dp" />
 
         <TextView
             android:id="@+id/text_survive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="52dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="40dp"
+            android:layout_toLeftOf="@+id/text_sec"
             android:background="#0000"
-            android:text="Survive"
+            android:text="@string/survive"
             android:textSize="25dp" />
 
     </RelativeLayout>
@@ -45,49 +46,50 @@
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:background="#0000"
-            android:text="Do you want to revive?"
+            android:text="@string/want_to_revive"
             android:textSize="25dp" />
+
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="45dp"
         android:background="#0000" >
-
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:textColor="#00FF00"
-            android:background="#0000"
-            android:text="150"
-            android:textSize="25dp" />
 
         <TextView
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_alignParentTop="true"
             android:layout_marginRight="34dp"
             android:layout_toLeftOf="@+id/textView3"
             android:background="#0000"
-            android:text="Need"
+            android:text="@string/need"
+            android:textSize="25dp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:background="#0000"
+            android:text="150"
+            android:textColor="#00FF00"
             android:textSize="25dp" />
 
         <ImageView
             android:id="@+id/imageView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="40dp"
+            android:layout_alignBottom="@+id/textView3"
+            android:layout_marginLeft="35dp"
             android:layout_toRightOf="@+id/textView3"
             android:background="#0000"
-            android:src="@drawable/coin32x32" />
+            android:src="@drawable/coin40x40" />
 
     </RelativeLayout>
 
@@ -125,10 +127,11 @@
             android:layout_alignBaseline="@+id/button1"
             android:layout_alignBottom="@+id/button1"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="33dp"
+            android:layout_marginRight="14dp"
             android:background="#0000"
+            android:gravity="left"
+            android:text="@string/no"
             android:textColor="#00FF00"
-            android:text="No"
             android:textSize="25dp" />
 
         <Button
@@ -136,12 +139,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginLeft="35dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="14dp"
             android:background="#0000"
+            android:gravity="right"
+            android:text="@string/yes"
             android:textColor="#00FF00"
-            android:text="Yes"
             android:textSize="25dp" />
+
     </RelativeLayout>
 
 </LinearLayout>

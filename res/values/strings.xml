@@ -35,5 +35,10 @@
     <string name="back_main">BACK MAIN</string>
     <string name="sec">sec</string>
     <string name="quit">QUIT</string>
+    <string name="want_to_revive">Do you want to revive ?</string>
+    <string name="survive">Survive</string>
+    <string name="need">Need</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
 </resources>
