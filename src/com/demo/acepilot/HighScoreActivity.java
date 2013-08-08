@@ -305,10 +305,26 @@ public class HighScoreActivity extends Activity{
 	}
 	
 	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		if(MainActivity.gameStatus == GameStatus.GAME_READY.ordinal())
+			MainActivity.mpMainMenu.start();
+		else
+			MainActivity.mpPlaying.start();
+	}	
+	
+	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
 		Log.d("jimbo","HighScore onPause()...");
+		
+		if(MainActivity.gameStatus == GameStatus.GAME_READY.ordinal())
+			MainActivity.mpMainMenu.pause();
+		else
+			MainActivity.mpPlaying.pause();
+		
 		if(myDataBaseHelper != null)
 			myDataBaseHelper.close();		
 	}
@@ -331,9 +347,4 @@ public class HighScoreActivity extends Activity{
 		}
 	}
 	
-	@Override
-	protected void onResume() {
-		// TODO Auto-generated method stub
-		super.onResume();		
-	}	
 }

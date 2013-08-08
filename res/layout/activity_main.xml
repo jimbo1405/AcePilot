@@ -15,19 +15,9 @@
         android:background="@android:color/transparent"
         android:text="ToggleButton"
         android:textColor="#00FF00"
-        android:textSize="18dp"
         android:textOff="@string/pause"
-        android:textOn="@string/resume" />
-
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/imageView1"
-        android:text="TextView"
-        android:textSize="18dp"
-        android:textColor="#00FF00" />
+        android:textOn="@string/resume"
+        android:textSize="18dp" />
 
     <Button
         android:id="@+id/button1"
@@ -49,31 +39,13 @@
         android:textSize="100dp" />
 
     <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:src="@drawable/coin32x32" />
-
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
-        android:layout_toLeftOf="@+id/textView2"
-        android:background="@android:color/transparent"
-        android:text="Button"
-        android:textColor="#00FF00" />
-
-    <ImageView
         android:id="@+id/imageView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
         android:src="@drawable/soundopen40x40" />
 
     <Button
@@ -93,5 +65,39 @@
         android:layout_alignLeft="@+id/button1"
         android:layout_marginBottom="15dp"
         android:background="@drawable/btn_highscore_selector" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:background="@android:color/transparent"
+        android:text="Button"
+        android:textColor="#00FF00" />
+
+    <LinearLayout
+        android:id="@+id/showCoin_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/showcoin_back_with_border"
+        android:orientation="horizontal" >
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/coin32x32" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textColor="#00FF00"
+            android:textSize="18dp" />
+    </LinearLayout>
 
 </RelativeLayout>

@@ -23,7 +23,7 @@
         <!-- 更换背景图片实现全透明 -->
         <item name="android:windowBackground">@drawable/opaque418x178</item>
         <!-- 屏幕背景变暗、模糊 -->
-        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:backgroundDimEnabled">true</item>
         <!-- 更改对话框标题栏 -->
         <item name="android:windowTitleStyle">@style/TitleText</item>
         <!-- 无标题 -->

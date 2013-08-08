@@ -56,7 +56,7 @@ public class MyRender implements Renderer{
 		}
 		if(count > 0){
 			timeBetweenFrame=timeNow-timePrevious;	//算出幾微秒繪製一個Frame			  		  						 
-			
+//			Log.d("jimbo", "timeBetweenFrame="+timeBetweenFrame);
 			//準備(補充)星星
 			if(starList.size() < MyConstant.STAR_NUM){
 				prepareBGStar();

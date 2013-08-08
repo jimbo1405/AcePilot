@@ -225,12 +225,14 @@ public class GameResultActivity extends Activity{
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
+		MainActivity.mpPlaying.start();
 	}
 
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
+		MainActivity.mpPlaying.pause();
 	}
 	
 	@Override

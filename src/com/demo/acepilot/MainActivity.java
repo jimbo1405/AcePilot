@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -27,6 +26,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -40,11 +40,12 @@ public class MainActivity extends Activity {
 	public static SoundPool sp;
 	private int clickSound1,explosionSound,banSound;
 	public static int coinSound;
-	private MediaPlayer mpMainMenu;
-	private MediaPlayer mpPlaying;
+	public static MediaPlayer mpMainMenu;
+	public static MediaPlayer mpPlaying;
 	
 	private Button btnStart,btnQuit,btnHighScore,btnRestart;
 	private ToggleButton btnPauseResume;
+	private LinearLayout showCoinLayout;
 	private TextView tvShowCoin,tvStartCD;					//tvShowCoin, a textView to show how many coins did you get.
 															//tvStartCD, a textView to make the count down-effection when the game starts.  
 	private ImageView ivCoin,ivSound;
@@ -75,28 +76,34 @@ public class MainActivity extends Activity {
 	private final static String PREF="PrefSettings";
 	private final static String PREF_TOTAL_COIN="ToatalCoin";
 	
+	private Thread countDownThread;							//a thread which task is performing 3..2..1.
+	private Message message;								//3..2..1's delivering msg,also be used as thread's obj lock.
+	private boolean isPaused;								//the condition which let countDownThread execute wait(). 
+	private boolean isFinished;								//the condition which means the end of countDownThread's task.
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("jimbo","onCreate()...");
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//設定全螢幕
-		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//設定螢幕為垂直
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);											//設定螢幕為垂直
 				
-		initSoundResource();	//init sound source.
+		initSoundResource();																							//init sound source.
 		setContentView(R.layout.activity_main);	
 		
-		restorePerf();		//get SharedPreferences.
-		findView();
+		restorePerf();																									//get SharedPreferences.
+		findViewAndInit();
 				
 		prepareGlSurfaceView();
-		createMyGameHandler();	//initialize myGameHandler 
+		createMyGameHandler();																							//initialize myGameHandler 
 		setAllBtn();
-
+		
+		myGameHandler.sendEmptyMessage(GameStatus.GAME_READY.ordinal());												//*****************************
 	}
 	
-	//find view.
-	private void findView(){
+	//find views and init some vlaues.
+	private void findViewAndInit(){
 		gl_layout=(RelativeLayout)findViewById(R.id.gl_layout);	//find出frameLayout
 		btnStart=(Button)findViewById(R.id.button1);
 		btnQuit=(Button)findViewById(R.id.button3);
@@ -112,6 +119,7 @@ public class MainActivity extends Activity {
         	ivSound.setImageResource(R.drawable.soundclose40x40);       	
         }
 		
+        showCoinLayout = (LinearLayout)findViewById(R.id.showCoin_layout);
 		tvShowCoin=(TextView)findViewById(R.id.textView1);
 		tvShowCoin.setText("X"+totalCoin);
 		tvStartCD=(TextView)findViewById(R.id.textView2);
@@ -123,6 +131,7 @@ public class MainActivity extends Activity {
 		initCoinNeed = 5;
 		reviveCount = 0;
 		coinGet = 0;
+		
 	}
 	
 	//init sound source.
@@ -140,9 +149,9 @@ public class MainActivity extends Activity {
 		coinSound = sp.load(MainActivity.this, R.raw.money, 1);
 		banSound = sp.load(MainActivity.this, R.raw.nono, 1);
 		
-		mpMainMenu = MediaPlayer.create(MainActivity.this, R.raw.superheros1);					
+		mpMainMenu = MediaPlayer.create(MainActivity.this, R.raw.battlelands);					
 		mpMainMenu.setLooping(true);
-		mpPlaying =  MediaPlayer.create(MainActivity.this, R.raw.superheros2);	
+		mpPlaying =  MediaPlayer.create(MainActivity.this, R.raw.angryrobotiii);	
 		mpPlaying.setLooping(true);
 	}
 	
@@ -168,11 +177,11 @@ public class MainActivity extends Activity {
 		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout
 		myGlSurfaceView.onPause();			
 		//let views to be invisible.
-		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin,ivSound);	
+		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,showCoinLayout,ivSound);	
 		//let views bring to front.		
 		setViewsToFront(btnStart,btnQuit,btnHighScore,tvStartCD,ivSound);
 		//set view's showing animation.
-		setShowAnimation(btnStart,btnQuit,btnHighScore,btnPauseResume,tvShowCoin,ivCoin,ivSound);
+		setShowAnimation(btnStart,btnQuit,btnHighScore,btnPauseResume,showCoinLayout,ivSound);
 		//set views to be visible.
 		setViewVisible(btnStart,btnQuit,btnHighScore,ivSound);
 				
@@ -194,25 +203,71 @@ public class MainActivity extends Activity {
 				
 				//GAME_READY
 				case 0:
+					gameStatus = GameStatus.GAME_READY.ordinal();	//********************
+					mpMainMenu.start();								//***************************
 					break;
 				
 				//GAME_START
 				case 1:		
-					gameStatus=GameStatus.GAME_START.ordinal();				//refresh gameStatus.					
-					activity.handleStrtNewGame(msg);						//call startGame().					
+					activity.handleStartNewGame(msg);				//call startGame().		
 					break;
 					
 				//GAME_PAUSE
-				case 2:	
-					gameStatus=GameStatus.GAME_PAUSE.ordinal();
-					activity.myGlSurfaceView.onPause();
+				case 2:						
+					if(mpPlaying.isPlaying())	//********************************************
+						mpPlaying.pause();		//****************************************************
+					else
+						mpMainMenu.pause();
+					
+					if(gameStatus == GameStatus.GAME_START.ordinal() || gameStatus == GameStatus.GAME_RESUME.ordinal()
+							|| gameStatus == GameStatus.GAME_REVIVE.ordinal()){
+						
+						activity.timeScore += System.currentTimeMillis() - activity.timeStart;			//********************************						
+						gameStatus=GameStatus.GAME_PAUSE.ordinal();
+						
+					}else if(activity.countDownThread != null && activity.countDownThread.isAlive()){	//countDownThread wait if is alive.
+						
+						synchronized (activity.message) {
+							activity.isPaused = true;
+						}
+						
+					}				
+					activity.myGlSurfaceView.onPause();										
 					break;
 				
 				//GAME_RESUME
 				case 3:	
-					gameStatus=GameStatus.GAME_RESUME.ordinal();
-					MyRender.timePrevious=System.currentTimeMillis();
-					activity.myGlSurfaceView.onResume();
+					Log.d("checkState","gameStatus="+gameStatus);
+					if(gameStatus == GameStatus.GAME_PAUSE.ordinal()){
+						
+						mpPlaying.start();									//mpPlaying continues.
+						activity.myGlSurfaceView.onResume();
+						activity.timeStart = System.currentTimeMillis();	//reset timeStart's value.
+						MyRender.timePrevious=System.currentTimeMillis();	//reset MyRender.timePrevious's value.										
+						gameStatus=GameStatus.GAME_RESUME.ordinal();
+						Log.d("checkState","在    遊戲中    按HOME鍵回來......");
+						
+					}else if(gameStatus == GameStatus.GAME_READY.ordinal()){						
+						
+						if(activity.countDownThread != null && activity.countDownThread.isAlive()){
+							
+							synchronized (activity.message) {
+								activity.isPaused = false;
+								activity.message.notify();
+							}
+							
+							mpPlaying.start();								//mpPlaying continues.
+							Log.d("checkState","在    倒數時    按HOME鍵回來......");						
+						}else{			
+							mpMainMenu.start();
+							Log.d("checkState","在    主菜單    按HOME鍵回來......");
+						}
+						
+					}else if(gameStatus == GameStatus.GAME_HIT.ordinal()){
+						mpPlaying.start();									//mpPlaying continues.
+						activity.myGlSurfaceView.onResume();
+						Log.d("checkState","在    對話框    按HOME鍵回來......");
+					}
 					break;	
 				
 				//GAME_HIT
@@ -234,8 +289,8 @@ public class MainActivity extends Activity {
 				case 5:
 					gameStatus=GameStatus.GAME_REVIVE.ordinal();
 					totalCoin -= MyConstant.calCurrCoinNeed(initCoinNeed, reviveCount);	//coinGet-coinNeed.
-					this.sendEmptyMessage(TV_SHOWCOIN);		//update the textView which is showing coinGet.
-					reviveCount++;							//reviveCount+1.
+					this.sendEmptyMessage(TV_SHOWCOIN);									//update the textView which is showing coinGet.
+					reviveCount++;														//reviveCount+1.
 					MyRender.timePrevious=System.currentTimeMillis();
 					activity.myGlSurfaceView.onResume();				
 					activity.twinklePlane();
@@ -253,12 +308,13 @@ public class MainActivity extends Activity {
 					break;
 					
 				//GAME_HIGHSCORE
-				case 7:
-					gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();
+				case 7:					
 					Intent intent = new Intent(activity, HighScoreActivity.class);
 					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					HighScoreActivity.updateFlag = false;	//updateFlag must be false when go to highscore page from main page directly.
 					activity.startActivity(intent);
+					if(gameStatus != GameStatus.GAME_READY.ordinal())
+						gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();
 					break;	
 				
 				//handle for progressDialog.
@@ -273,9 +329,7 @@ public class MainActivity extends Activity {
 				//handle for tvShowCoin.
 				case TV_SHOWCOIN:
 					activity.tvShowCoin.setText("X"+totalCoin);
-					break;
-					
-					
+					break;					
 				}	
 	      }
 	    }
@@ -294,17 +348,10 @@ public class MainActivity extends Activity {
 			//btnStart
 			case R.id.button1:					
 				sp.play(clickSound1, 1, 1, 0, 0, 1);
-				sendStrNewGame();									//call sendStrNewGame().
+				sendStartNewGame();									//call sendStrNewGame().
 				setHideAnimation(btnStart,btnQuit,btnHighScore);	//set view's hidding animation.
-				setViewGone(btnStart,btnQuit,btnHighScore);			//set views to be gone.
-				
-				if(mpMainMenu != null){
-					if(mpMainMenu.isPlaying())
-						mpMainMenu.stop();
-					mpMainMenu.release();
-					mpMainMenu = null;
-				}
-				
+				setViewGone(btnStart,btnQuit,btnHighScore);			//set views to be gone.				
+				mpMainMenu.stop();				
 				mpPlaying.start();
 				break;
 			
@@ -349,52 +396,72 @@ public class MainActivity extends Activity {
 				boolean isChecked) {
 			if(isChecked){
 				myGameHandler.sendEmptyMessage(GameStatus.GAME_PAUSE.ordinal());
-				timeScore += System.currentTimeMillis() - timeStart;
+//				timeScore += System.currentTimeMillis() - timeStart;	//*************************************
 			}	
 			else{
 				myGameHandler.sendEmptyMessage(GameStatus.GAME_RESUME.ordinal());
-				timeStart = System.currentTimeMillis();
+//				timeStart = System.currentTimeMillis();					//**************************************************
 			}
 			isChecked = !isChecked;
 		}
 		
 	}
 			
-	//send the msg by starting new game
-	private void sendStrNewGame(){
-		new Thread(new Runnable() {
-			Message msg;
-			@Override
-			public void run() {							
-				for(int i=12;i>=0;i--){								
-					try {
-						if(i > 6)
-							Thread.sleep(500);	//show 3.2.1...delay 1s.
-						else
-							Thread.sleep(350);	//show GO!delay 0.5s.
-					} catch (InterruptedException e) {									
-						e.printStackTrace();
-					}
-					msg=new Message();
-					msg.what=GameStatus.GAME_START.ordinal();
-					msg.arg1=i;
-					myGameHandler.sendMessage(msg);
-				}
-			}
-		}).start();
-	}
-	
-	//handle the msg by starting new game
-	private void handleStrtNewGame(Message msg){
-		if(msg.arg1 > 6){	
-			if(msg.arg1 == 12){
-//				myGlSurfaceView.onResume();		//原本想要讓飛機先出現，GO!開始閃爍時才能移動，但這樣寫不可行
-//				myGlSurfaceView.onPause();
+	//send the msg to perform 3..2..1.
+	private void sendStartNewGame(){
+		//MyRunnable class used by countDownThread.
+		class MyRunnable implements Runnable{
+			
+			//constructor.
+			public MyRunnable(){
+				isPaused = false;
+				isFinished = false;
+				message = new Message();
 			}
 			
+			@Override
+			public void run() {
+				while(!isFinished){
+					for(int i=12;i>=0;i--){								
+						try {
+							if(i > 6)
+								Thread.sleep(500);	//show 3.2.1...delay 1s.
+							else
+								Thread.sleep(350);	//show GO!delay 0.5s.
+						} catch (InterruptedException e) {									
+							e.printStackTrace();
+						}					
+						message = new Message();
+						message.what=GameStatus.GAME_START.ordinal();
+						message.arg1=i;
+						myGameHandler.sendMessage(message);
+						if(i == 0)
+							isFinished = true;
+						
+						while(isPaused){
+							synchronized (message) {
+								try {
+									message.wait();
+								} catch (InterruptedException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+						}
+					}	
+				}
+			}			
+		}
+		countDownThread = new Thread(new MyRunnable());		
+		countDownThread.start();
+	}
+	
+	//handle the msg from sendStartNewGame().
+	private void handleStartNewGame(Message msg){
+		if(msg.arg1 > 6){				
 			if(msg.arg1 % 2 == 1){
 				setHideAnimation(tvStartCD);
-				setViewInVisible(tvStartCD);
+				setViewInVisible(tvStartCD);				
 			}else{				
 				tvStartCD.setText((msg.arg1-6)/2 + "");				
 				setShowAnimation(tvStartCD);
@@ -403,7 +470,7 @@ public class MainActivity extends Activity {
 		}else{						
 			if(msg.arg1 == 6){				
 				myGlSurfaceView.onResume();
-				createTestDieThread();			//createTestDieThread while gmae starts running
+				createTestDieThread();			//createTestDieThread while game starts running
 			}
 			
 			if(msg.arg1 % 2 == 1){
@@ -415,9 +482,10 @@ public class MainActivity extends Activity {
 				setViewVisible(tvStartCD);			
 			}else{
 				setViewGone(tvStartCD);
-				setViewsToFront(btnPauseResume,ivCoin,tvShowCoin);	//let views bring to front.
-				setViewVisible(btnPauseResume,ivCoin,tvShowCoin);	//set views to be visible.			
-				timeStart=System.currentTimeMillis();				//get timeStart value
+				setViewsToFront(btnPauseResume,showCoinLayout);	//let views bring to front.
+				setViewVisible(btnPauseResume,showCoinLayout);	//set views to be visible.
+				gameStatus=GameStatus.GAME_START.ordinal();			//change gameStatus.
+				timeStart=System.currentTimeMillis();				//get timeStart value.
 			}	
 		}					
 	}
@@ -572,11 +640,41 @@ public class MainActivity extends Activity {
 	}
 	
 	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		Log.d("jimbo","onStart()...");
+	}
+	
+	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub		
 		super.onResume();
-		Log.d("jimbo","onResume()...");		
-		mpMainMenu.start();
+		Log.d("jimbo","onResume()...");
+		
+		myGameHandler.sendEmptyMessage(GameStatus.GAME_RESUME.ordinal());	//do something in GAME_RESUME case.
+	}
+	
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		Log.d("jimbo","onPause()...");
+		//store SharedPreferences.
+		SharedPreferences sp = getSharedPreferences(PREF, 0);
+		sp.edit()
+		.putInt(PREF_TOTAL_COIN, totalCoin)
+		.putInt("currVolumeIndex", currVolumeIndex)
+		.commit();
+		
+		myGameHandler.sendEmptyMessage(GameStatus.GAME_PAUSE.ordinal());	//do something in GAME_PAUSE case.
+	}
+
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		Log.d("jimbo","onStop()...");
 	}
 	
 	@Override
@@ -607,33 +705,6 @@ public class MainActivity extends Activity {
 			sp = null;
 		}		
 	}
-
-	@Override
-	protected void onPause() {
-		// TODO Auto-generated method stub
-		super.onPause();
-		Log.d("jimbo","onPause()...");
-		//store SharedPreferences.
-		SharedPreferences sp = getSharedPreferences(PREF, 0);
-		sp.edit()
-		.putInt(PREF_TOTAL_COIN, totalCoin)
-		.putInt("currVolumeIndex", currVolumeIndex)
-		.commit();
-	}
-
-	@Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-		Log.d("jimbo","onStart()...");
-	}
-
-	@Override
-	protected void onStop() {
-		// TODO Auto-generated method stub
-		super.onStop();
-		Log.d("jimbo","onStop()...");
-	}
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -653,12 +724,13 @@ public class MainActivity extends Activity {
 		}
 		
 		//adjust volume key
-		if(keyCode == event.KEYCODE_VOLUME_DOWN){
+		if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN){
 			if(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) == 1)	//why is 1?so tricky...
 				ivSound.setImageResource(R.drawable.soundclose40x40);
-		}else if(keyCode == event.KEYCODE_VOLUME_UP){
+		}else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
 				ivSound.setImageResource(R.drawable.soundopen40x40);
 		}
+		
 		return super.onKeyDown(keyCode, event);
 	}	
 }
