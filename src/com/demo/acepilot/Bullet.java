@@ -46,12 +46,18 @@ public class Bullet{
 	 private static Bitmap bitmap;
 	 private int texture;
 
-	 public Bullet() {
+	 public Bullet(float pxl_w, float pxl_h) {
 		setBullet_positionX(0);
 		setBullet_positionY(0);
 		setBullet_fly(0);
 		setBullet_totalFly(0); 
-		 
+		
+		// adjust shape
+		for (int i=0; i<=3; i++) {
+			vertices[i*3] = vertices[i*3]*(pxl_w/2);
+			vertices[i*3+1] = vertices[i*3+1]*(pxl_h/2);
+		}	
+		  
 		// 浮點數是4位元組因此需要把點陣列長度乘以4
 		ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
 		vbb.order(ByteOrder.nativeOrder());

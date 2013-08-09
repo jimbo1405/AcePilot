@@ -6,20 +6,20 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class Circle  
+public class Circle
 {  
     private float[] vertices = new float[720];  
     private FloatBuffer verBuffer;  
     private float yAngle;  
     private float zAngle;  
-    public Circle()  
+    public Circle(float pxl_w, float pxl_h)  
     {  
         //初始化圖形數據  
         for (int i = 0; i < 720; i += 2) {  
             // x 座標 
-            vertices[i]   =  (float) (Math.cos(DegToRad(i)) * 1);  
+            vertices[i]   =  (float) (Math.cos(DegToRad(i)) * (pxl_w/2));  
             // y 座標  
-            vertices[i+1] =  (float) (Math.sin(DegToRad(i)) * 1);  
+            vertices[i+1] =  (float) (Math.sin(DegToRad(i)) * (pxl_h/2));  
         }     
         //設置圖形頂點數據  
         ByteBuffer qbb = ByteBuffer.allocateDirect(vertices.length * 4);  

@@ -14,7 +14,7 @@ import android.util.Log;
 public class Coin {
 	private double coin_positionX;	//子彈X位置
 	private double coin_positionY;	//子彈Y位置 
-	
+
 	// 點的陣列
 	 private float vertices[] = { -1.0f, 1.0f, 0.0f, // 0, 左上角
 	   -1.0f, -1.0f, 0.0f, // 1, 左下角
@@ -24,7 +24,7 @@ public class Coin {
 
 	 // 連接點的次序
 	 private short[] indices = { 0, 1, 2, 0, 2, 3 };
-	 
+
 	// 質地坐標
 	 private float[] textureCor = { 0.0f, 0.0f, //
 			   0.0f, 1.0f, //
@@ -38,11 +38,18 @@ public class Coin {
 	 private ShortBuffer indexBuffer;
 	// 質地緩衝區
 	 private FloatBuffer textureBuffer;
-	 
+
 	 private static Bitmap bitmap;
 	 private int texture;
 
-	 public Coin() {
+	 public Coin(float pxl_w, float pxl_h) {
+		 
+	  // adjust shape
+	  for (int i=0; i<=3; i++) {
+		vertices[i*3] = vertices[i*3]*(pxl_w/2);
+		vertices[i*3+1] = vertices[i*3+1]*(pxl_h/2);
+	  }	
+			  
 	  // 浮點數是4位元組因此需要把點陣列長度乘以4
 	  ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
 	  vbb.order(ByteOrder.nativeOrder());
@@ -56,14 +63,14 @@ public class Coin {
 	  indexBuffer = ibb.asShortBuffer();
 	  indexBuffer.put(indices);
 	  indexBuffer.position(0);
-	  
+
 	  ByteBuffer byteBuf = ByteBuffer.allocateDirect(textureCor.length * 4);
 	  byteBuf.order(ByteOrder.nativeOrder());
 	  textureBuffer = byteBuf.asFloatBuffer();
 	  textureBuffer.put(textureCor);
 	  textureBuffer.position(0);
 	 }
-	 
+
 	 /**
 	  * 畫圖函式
 	  * 
@@ -78,7 +85,7 @@ public class Coin {
 		gl.glEnable(GL10.GL_CULL_FACE);
 		// 刪除多邀形的背景
 		gl.glCullFace(GL10.GL_BACK);
-		
+
 		// 啟動點的緩衝區
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 		// 使用UV坐標
@@ -108,7 +115,7 @@ public class Coin {
 	 public void setBitmap(Bitmap bitmap) {	  
 		 this.bitmap = bitmap;
 	 }
-	 
+
 	 public void loadTexture(GL10 gl)
 	    {
 	        Bitmap tmpBitmap = null;
@@ -163,6 +170,6 @@ public class Coin {
 	public void setCoin_positionY(double coin_positionY) {
 		this.coin_positionY = coin_positionY;
 	}
-	 
-	 
+
+
 }
