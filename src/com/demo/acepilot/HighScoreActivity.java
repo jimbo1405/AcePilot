@@ -326,7 +326,9 @@ public class HighScoreActivity extends Activity{
 			MainActivity.mpPlaying.pause();
 		
 		if(myDataBaseHelper != null)
-			myDataBaseHelper.close();		
+			myDataBaseHelper.close();
+		
+		MainActivity.firstRunFlag = false;	//set firstRunFlag to be false.
 	}
 	
 	@Override

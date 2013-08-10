@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
 	private LinearLayout showCoinLayout;
 	private TextView tvShowCoin,tvStartCD;					//tvShowCoin, a textView to show how many coins did you get.
 															//tvStartCD, a textView to make the count down-effection when the game starts.  
-	private ImageView ivCoin,ivSound;
+	private ImageView ivSound,ivLogo;
 	private MyGlSurfaceView myGlSurfaceView;
 	private MyRender myRender; 
 	private RelativeLayout gl_layout;
@@ -81,6 +81,9 @@ public class MainActivity extends Activity {
 	private boolean isPaused;								//the condition which let countDownThread execute wait(). 
 	private boolean isFinished;								//the condition which means the end of countDownThread's task.
 	
+	private final static int SET_LOGO_GONE = 3000;
+	public static boolean firstRunFlag = true;				//the flag implies whether is first running.It must be false from HighScoreActivity.
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -99,7 +102,13 @@ public class MainActivity extends Activity {
 		createMyGameHandler();																							//initialize myGameHandler 
 		setAllBtn();
 		
-		myGameHandler.sendEmptyMessage(GameStatus.GAME_READY.ordinal());												//*****************************
+		//if it's first running,show the logo,or don't.
+		if(firstRunFlag){	
+			setGameReady();			
+		}else{
+			myGameHandler.sendEmptyMessage(GameStatus.GAME_READY.ordinal());
+			firstRunFlag = true;
+		}		
 	}
 	
 	//find views and init some vlaues.
@@ -110,8 +119,9 @@ public class MainActivity extends Activity {
 		btnHighScore=(Button)findViewById(R.id.button4);
 		btnRestart=(Button)findViewById(R.id.button2);
 		btnPauseResume=(ToggleButton)findViewById(R.id.toggleButton1);
-		ivCoin=(ImageView)findViewById(R.id.imageView1);
+//		ivCoin=(ImageView)findViewById(R.id.imageView1);
 		ivSound=(ImageView)findViewById(R.id.imageView2);
+		ivLogo=(ImageView)findViewById(R.id.iv_logo);
 		
         if (SoundEnabled) {
         	ivSound.setImageResource(R.drawable.soundopen40x40);        	
@@ -127,6 +137,8 @@ public class MainActivity extends Activity {
 		
 		df=new DecimalFormat("0.000");	//initial df and set pattern
 		prepareReviveDialog();
+		
+		gameStatus = GameStatus.GAME_NOT_READY.ordinal();
 		
 		initCoinNeed = 5;
 		reviveCount = 0;
@@ -172,19 +184,22 @@ public class MainActivity extends Activity {
 		myRender.setBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.su_30_flanker),
 				BitmapFactory.decodeResource(getResources(), R.drawable.normal_bullet),
 				BitmapFactory.decodeResource(getResources(), R.drawable.coin32x32));
-		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);	//建立MyGlSurfaceView的物件					
-		myGlSurfaceView.setRenderer(myRender);	//設定render		
-		gl_layout.addView(myGlSurfaceView);		//將MyGlSurfaceView的物件加入gl_layout
+		myGlSurfaceView=new MyGlSurfaceView(MainActivity.this);		//建立MyGlSurfaceView的物件					
+		myGlSurfaceView.setRenderer(myRender);						//設定render		
+		gl_layout.addView(myGlSurfaceView);							//將MyGlSurfaceView的物件加入gl_layout
 		myGlSurfaceView.onPause();			
 		//let views to be invisible.
-		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,showCoinLayout,ivSound);	
-		//let views bring to front.		
-		setViewsToFront(btnStart,btnQuit,btnHighScore,tvStartCD,ivSound);
+		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,showCoinLayout,ivSound,ivLogo);	
 		//set view's showing animation.
-		setShowAnimation(btnStart,btnQuit,btnHighScore,btnPauseResume,showCoinLayout,ivSound);
-		//set views to be visible.
-		setViewVisible(btnStart,btnQuit,btnHighScore,ivSound);
-				
+		setShowAnimation(btnStart,btnQuit,btnHighScore,btnPauseResume,showCoinLayout,ivSound,ivLogo);
+
+		if(firstRunFlag){
+			//let ivLogo bring to front.		
+			setViewsToFront(ivLogo);	
+			//set ivLogo to be visible.
+			setViewVisible(ivLogo);
+		}				
+
 //		btnRestart.bringToFront();
 	}
 	
@@ -202,9 +217,16 @@ public class MainActivity extends Activity {
 				switch(msg.what){
 				
 				//GAME_READY
-				case 0:
-					gameStatus = GameStatus.GAME_READY.ordinal();	//********************
-					mpMainMenu.start();								//***************************
+				case 0:					
+					if(msg.arg1 == SET_LOGO_GONE){
+						activity.setHideAnimation(activity.ivLogo);			//set ivLogo hide animation.
+						activity.setViewGone(activity.ivLogo);
+					}else{
+						activity.setViewsToFront(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.tvStartCD,activity.ivSound);
+						activity.setViewVisible(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.ivSound);	//set views to be visible.
+						gameStatus = GameStatus.GAME_READY.ordinal();	//********************
+//						mpMainMenu.start();								//***************************
+					}					
 					break;
 				
 				//GAME_START
@@ -247,7 +269,7 @@ public class MainActivity extends Activity {
 						gameStatus=GameStatus.GAME_RESUME.ordinal();
 						Log.d("checkState","在    遊戲中    按HOME鍵回來......");
 						
-					}else if(gameStatus == GameStatus.GAME_READY.ordinal()){						
+					}else if(gameStatus == GameStatus.GAME_READY.ordinal() || gameStatus == GameStatus.GAME_NOT_READY.ordinal()){						
 						
 						if(activity.countDownThread != null && activity.countDownThread.isAlive()){
 							
@@ -407,6 +429,30 @@ public class MainActivity extends Activity {
 		
 	}
 			
+	//set game become ready.
+	private void setGameReady(){
+		new Thread(new Runnable() {			
+			@Override
+			public void run() {
+				for(int i = 0 ; i < 4 ; i++){
+					try {
+						if(i == 3){
+							Message msg = new Message();
+							msg.arg1 = SET_LOGO_GONE;
+							msg.what = GameStatus.GAME_READY.ordinal();
+							myGameHandler.sendMessage(msg);							
+							Thread.sleep(500);							
+						}else							
+							Thread.sleep(1000);
+					} catch (InterruptedException e) {	
+						e.printStackTrace();
+					}
+				}
+				myGameHandler.sendEmptyMessage(GameStatus.GAME_READY.ordinal());
+			}
+		}).start();
+	}
+	
 	//send the msg to perform 3..2..1.
 	private void sendStartNewGame(){
 		//MyRunnable class used by countDownThread.

@@ -5,75 +5,134 @@
     android:layout_height="match_parent"
     android:background="#000000" >
 
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/imageView1"
+        android:layout_below="@+id/textView1"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/clock40x40" />
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/imageView2"
-        android:layout_alignLeft="@+id/textView3"
+        android:layout_alignLeft="@+id/textView1"
         android:background="@android:color/transparent"
-        android:text="TextView"
+        android:text="sec"
         android:textColor="#00FF00"
-        android:textSize="30dp" />
-
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/imageView2"
-        android:layout_alignLeft="@+id/textView2"
-        android:layout_marginBottom="14dp"
-        android:background="@android:color/transparent"
-        android:text="TextView"
-        android:textColor="#00FF00"
-        android:textSize="30dp" />
-
-    <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/textView1"
-        android:layout_alignLeft="@+id/imageView2"
-        android:src="@drawable/coin74x74" />
-
-    <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/imageView3"
-        android:layout_alignLeft="@+id/imageView3"
-        android:layout_marginBottom="14dp"
-        android:src="@drawable/clock74x74" />
-
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/imageView3"
-        android:layout_alignLeft="@+id/imageView4"
-        android:layout_marginLeft="22dp"
-        android:background="@android:color/transparent"
-        android:text="TextView"
-        android:textColor="#00FF00"
-        android:textSize="30dp" />
+        android:textSize="20dp" />
 
     <ImageView
         android:id="@+id/imageView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/imageView4"
-        android:layout_marginBottom="34dp"
-        android:layout_toLeftOf="@+id/textView3"
-        android:src="@drawable/talk74x74" />
+        android:layout_alignRight="@+id/imageView2"
+        android:layout_below="@+id/imageView2"
+        android:layout_marginTop="18dp"
+        android:src="@drawable/revive56x56" />
+
+    <TextView
+        android:id="@+id/tv_revive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/imageView3"
+        android:layout_alignLeft="@+id/textView2"
+        android:background="@android:color/transparent"
+        android:textColor="#00FF00"
+        android:textSize="20dp"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/imageView2"
+        android:layout_centerVertical="true"
+        android:text="TOTAL SCORE"
+        android:textColor="#00FF00"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/tv_score_coin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/imageView2"
+        android:layout_toRightOf="@+id/button1"
+        android:background="@android:color/transparent"
+        android:text="TextView"
+        android:textColor="#00FF00"
+        android:textSize="20dp" />
 
     <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_above="@+id/button1"
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="34dp"
+        android:src="@drawable/coin40x40" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/imageView1"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/imageView1"
+        android:background="@android:color/transparent"
+        android:text="coin"
+        android:textColor="#00FF00"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/tv_score_revive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tv_revive"
+        android:layout_alignBottom="@+id/tv_revive"
+        android:layout_alignLeft="@+id/tv_score_sec"
+        android:background="@android:color/transparent"
+        android:text="TextView"
+        android:textColor="#00FF00"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/tv_score_sec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/imageView3"
+        android:layout_toRightOf="@+id/button1"
+        android:background="@android:color/transparent"
+        android:text="TextView"
+        android:textColor="#00FF00"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/textView4"
+        android:layout_alignLeft="@+id/tv_score_revive"
+        android:background="@android:color/transparent"
+        android:text="TextView"
+        android:textColor="#00FF00"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView4"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="30dp"
-        android:src="@drawable/lvl_01" />
+        android:layout_marginTop="17dp"
+        android:background="@android:color/transparent"
+        android:text="comment"
+        android:textColor="#00FF00"
+        android:textSize="20dp" />
 
     <Button
         android:id="@+id/button1"
@@ -81,7 +140,16 @@
         android:layout_height="39dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="128dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/btn_continue_selector" />
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_below="@+id/textView3"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="14dp"
+        android:src="@drawable/lvl_01" />
 
 </RelativeLayout>

@@ -1,12 +1,13 @@
 package com.demo.acepilot;
 
 public enum GameStatus {
-	GAME_READY,		//0
-	GAME_START,		//1
-	GAME_PAUSE,		//2
-	GAME_RESUME,	//3
-	GAME_HIT,		//4
-	GAME_REVIVE,	//5	
-	GAME_OVER,		//6
-	GAME_HIGHSCORE	//7
+	GAME_READY,		//
+	GAME_START,		//
+	GAME_PAUSE,		//
+	GAME_RESUME,	//
+	GAME_HIT,		//
+	GAME_REVIVE,	//	
+	GAME_OVER,		//
+	GAME_HIGHSCORE,	//
+	GAME_NOT_READY	//8
 }
