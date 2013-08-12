@@ -201,32 +201,33 @@ public class HighScoreActivity extends Activity{
 	
 	//a method to decide which *.png of lvl to show.
 	private int getLevelDrawID(GameRecords currentGR){
-		String lvl=currentGR.getLevel();
-		
-		if(lvl.equals("1")){
-			return R.drawable.lvl_01;
-		}else if(lvl.equals("2")){
-			return R.drawable.lvl_02;
-		}else if(lvl.equals("3")){
-			return R.drawable.lvl_03;
-		}else if(lvl.equals("4")){
-			return R.drawable.lvl_04;
-		}else if(lvl.equals("5")){
-			return R.drawable.lvl_05;
-		}else if(lvl.equals("6")){
-			return R.drawable.lvl_06;
-		}else if(lvl.equals("7")){
-			return R.drawable.lvl_07;
-		}else if(lvl.equals("8")){
-			return R.drawable.lvl_08;
-		}else if(lvl.equals("9")){
-			return R.drawable.lvl_09;
-		}else if(lvl.equals("10")){
-			return R.drawable.lvl_10;
-		}else if(lvl.equals("11")){
-			return R.drawable.lvl_11;
-		}else
-			return R.drawable.lvl_12;
+		String lvl = currentGR.getLevel();
+		int tempLvl = Integer.parseInt(lvl);		
+		return MyConstant.DrawableIdArray[tempLvl - 1];
+//		if(lvl.equals("1")){
+//			return R.drawable.lvl_01;
+//		}else if(lvl.equals("2")){
+//			return R.drawable.lvl_02;
+//		}else if(lvl.equals("3")){
+//			return R.drawable.lvl_03;
+//		}else if(lvl.equals("4")){
+//			return R.drawable.lvl_04;
+//		}else if(lvl.equals("5")){
+//			return R.drawable.lvl_05;
+//		}else if(lvl.equals("6")){
+//			return R.drawable.lvl_06;
+//		}else if(lvl.equals("7")){
+//			return R.drawable.lvl_07;
+//		}else if(lvl.equals("8")){
+//			return R.drawable.lvl_08;
+//		}else if(lvl.equals("9")){
+//			return R.drawable.lvl_09;
+//		}else if(lvl.equals("10")){
+//			return R.drawable.lvl_10;
+//		}else if(lvl.equals("11")){
+//			return R.drawable.lvl_11;
+//		}else
+//			return R.drawable.lvl_12;
 	}
 	
 	//get current position of item of myListView.

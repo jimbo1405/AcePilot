@@ -11,18 +11,53 @@
     <string name="continu">CONTINUE</string>
     <string name="level">LEVEL</string>
     <string-array name="comment_array">
-        <item>打包回府</item>
-        <item>清潔茅房</item>
-        <item>猴子一般</item>
-        <item>手指正常</item>
-        <item>無臉雜魚</item>
-        <item>雜魚菁英</item>
-        <item>雜魚頭目</item>
-        <item>脫胎換骨</item>
-        <item>明日之星</item>
-        <item>神功初成</item>
-        <item>出神入化</item>
-        <item>天下無敵</item>
+        <item>Come on man!</item>
+        <item>Come on man!</item>
+        
+        <item>Watchout those bullets!</item>
+        <item>Watchout those bullets!</item>
+        
+        <item>Rookie pilot!</item>
+        <item>Rookie pilot!</item>
+        
+        <item>You can do better!</item>
+        <item>You can do better!</item>
+        
+        <item>So far so good!</item>
+        <item>So far so good!</item>
+        
+        <item>You did a good job!</item>
+        <item>You did a good job!</item>
+        
+        <item >You have great potential!</item>
+        <item >You have great potential!</item>
+        
+        <item >Practice makes perfect!</item>
+        <item >Practice makes perfect!</item>
+        
+        <item >Sophisticated pilot!</item>
+        <item >Sophisticated pilot!</item>
+        
+        <item >Excellent skill!</item>
+        <item >Excellent skill!</item>
+        
+        <item >Terrific dodge!</item>
+        <item >Terrific dodge!</item>
+        
+        <item >You can consider being a pilot!</item>
+        <item >You can consider being a pilot!</item>
+        
+        <item >Not due to luck, right?</item>
+        <item >Not due to luck, right?</item>
+        
+        <item >Like a boss!</item>
+        <item >Like a boss!</item>
+        
+        <item >Can I call you pilot God?</item>
+        <item >Can I call you pilot God?</item>
+        
+        <item >Are you human being?</item>
+        <item >Are you human being?</item>
     </string-array>
     <string name="hign_score">HIGH SCORE</string>
     <string-array name="rank">
@@ -40,5 +75,6 @@
     <string name="need">Need</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="multiply">x</string>
 
 </resources>

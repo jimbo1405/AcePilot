@@ -10,7 +10,7 @@
         android:layout_height="fill_parent"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_launcher" 
+        android:src="@android:color/background_dark" 
         android:focusable="true"
     	android:focusableInTouchMode="true"/>
 
@@ -22,6 +22,8 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:text="@string/hign_score"
+        android:background="@android:color/transparent"
+        android:textColor="#00FF00"
         android:textSize="30dp" />
 
     <ListView

@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
 	private static int initCoinNeed;						//coin need at first revive.
 	public static int totalCoin;							//the total number of coins user owns.
 	
-	private static int reviveCount;							//the number of the revive count.
+	public static int reviveCount;							//the number of the revive count.
 	
 	public final static int TV_SHOWCOIN=2000;
 	private final static int PROGRESSDIALOG_REVIVE=1000;	//give PROGRESSDIALOG_REVIVE a final value,then we can easily identify it.
@@ -434,14 +434,14 @@ public class MainActivity extends Activity {
 		new Thread(new Runnable() {			
 			@Override
 			public void run() {
-				for(int i = 0 ; i < 4 ; i++){
+				for(int i = 0 ; i < MyConstant.logoDisplaySec + 1 ; i++){
 					try {
 						if(i == 3){
 							Message msg = new Message();
 							msg.arg1 = SET_LOGO_GONE;
 							msg.what = GameStatus.GAME_READY.ordinal();
 							myGameHandler.sendMessage(msg);							
-							Thread.sleep(500);							
+							Thread.sleep(800);							
 						}else							
 							Thread.sleep(1000);
 					} catch (InterruptedException e) {	
