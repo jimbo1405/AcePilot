@@ -10,7 +10,7 @@
         android:layout_height="fill_parent"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:src="@android:color/background_dark" 
+        android:src="@drawable/galaxy300x250" 
         android:focusable="true"
     	android:focusableInTouchMode="true"/>
 
@@ -21,7 +21,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="@string/hign_score"
+        android:text="@string/hign_score_title"
         android:background="@android:color/transparent"
         android:textColor="#00FF00"
         android:textSize="30dp" />
@@ -42,6 +42,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/btn_backmain_selector" />
+        android:text="@string/back_main"
+        style="@style/StyleButton" />
 
 </RelativeLayout>

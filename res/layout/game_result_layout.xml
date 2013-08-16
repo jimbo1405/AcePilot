@@ -12,7 +12,8 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/btn_continue_selector" />
+        android:text="@string/continu"
+        style="@style/StyleButton" />
 
     <TextView
         android:id="@+id/textView4"

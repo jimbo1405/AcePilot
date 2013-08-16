@@ -7,10 +7,10 @@
     <item
         android:state_enabled="true"
         android:state_pressed="true"
-        android:drawable="@drawable/btn_backmain_press" /> <!-- press state-->
+        android:drawable="@drawable/button_press" /> <!-- press state-->
     <item
         android:state_enabled="false"
-        android:drawable="@drawable/ic_launcher" /> <!-- disable state-->
+        android:drawable="@drawable/button_normal" /> <!-- disable state-->
     <item
-        android:drawable="@drawable/btn_backmain_normal" /> <!-- default state-->
+        android:drawable="@drawable/button_normal" /> <!-- default state-->
 </selector>

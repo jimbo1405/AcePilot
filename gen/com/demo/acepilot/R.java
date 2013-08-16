@@ -19,67 +19,56 @@ public final class R {
     public static final class attr {
     }
     public static final class drawable {
-        public static final int btn_backmain_normal=0x7f020000;
-        public static final int btn_backmain_press=0x7f020001;
-        public static final int btn_backmain_selector=0x7f020002;
-        public static final int btn_continue_normal=0x7f020003;
-        public static final int btn_continue_press=0x7f020004;
-        public static final int btn_continue_selector=0x7f020005;
-        public static final int btn_highscore_normal=0x7f020006;
-        public static final int btn_highscore_press=0x7f020007;
-        public static final int btn_highscore_selector=0x7f020008;
-        public static final int btn_quit_normal=0x7f020009;
-        public static final int btn_quit_press=0x7f02000a;
-        public static final int btn_quit_selector=0x7f02000b;
-        public static final int btn_start_normal=0x7f02000c;
-        public static final int btn_start_press=0x7f02000d;
-        public static final int btn_start_selector=0x7f02000e;
-        public static final int clock40x40=0x7f02000f;
-        public static final int coin32x32=0x7f020010;
-        public static final int coin40x40=0x7f020011;
-        public static final int ic_launcher=0x7f020012;
-        public static final int kuwang_logo_450x450=0x7f020013;
-        public static final int normal_bullet=0x7f020014;
-        public static final int opaque418x178=0x7f020015;
-        public static final int rank011=0x7f020016;
-        public static final int rank012=0x7f020017;
-        public static final int rank021=0x7f020018;
-        public static final int rank022=0x7f020019;
-        public static final int rank031=0x7f02001a;
-        public static final int rank032=0x7f02001b;
-        public static final int rank041=0x7f02001c;
-        public static final int rank042=0x7f02001d;
-        public static final int rank051=0x7f02001e;
-        public static final int rank052=0x7f02001f;
-        public static final int rank061=0x7f020020;
-        public static final int rank062=0x7f020021;
-        public static final int rank071=0x7f020022;
-        public static final int rank072=0x7f020023;
-        public static final int rank081=0x7f020024;
-        public static final int rank082=0x7f020025;
-        public static final int rank091=0x7f020026;
-        public static final int rank092=0x7f020027;
-        public static final int rank101=0x7f020028;
-        public static final int rank102=0x7f020029;
-        public static final int rank111=0x7f02002a;
-        public static final int rank112=0x7f02002b;
-        public static final int rank121=0x7f02002c;
-        public static final int rank122=0x7f02002d;
-        public static final int rank131=0x7f02002e;
-        public static final int rank132=0x7f02002f;
-        public static final int rank141=0x7f020030;
-        public static final int rank142=0x7f020031;
-        public static final int rank151=0x7f020032;
-        public static final int rank152=0x7f020033;
-        public static final int rank161=0x7f020034;
-        public static final int rank162=0x7f020035;
-        public static final int revive56x56=0x7f020036;
-        public static final int revivedialog_back_with_border=0x7f020037;
-        public static final int showcoin_back_with_border=0x7f020038;
-        public static final int soundclose40x40=0x7f020039;
-        public static final int soundopen40x40=0x7f02003a;
-        public static final int su_30_flanker=0x7f02003b;
-        public static final int su_30_flanker_revive55x55=0x7f02003c;
+        public static final int button_normal=0x7f020000;
+        public static final int button_press=0x7f020001;
+        public static final int button_selector=0x7f020002;
+        public static final int clock40x40=0x7f020003;
+        public static final int coin32x32=0x7f020004;
+        public static final int coin40x40=0x7f020005;
+        public static final int galaxy300x250=0x7f020006;
+        public static final int ic_launcher=0x7f020007;
+        public static final int kuwang_logo_400x450=0x7f020008;
+        public static final int normal_bullet=0x7f020009;
+        public static final int opaque418x178=0x7f02000a;
+        public static final int rank011=0x7f02000b;
+        public static final int rank012=0x7f02000c;
+        public static final int rank021=0x7f02000d;
+        public static final int rank022=0x7f02000e;
+        public static final int rank031=0x7f02000f;
+        public static final int rank032=0x7f020010;
+        public static final int rank041=0x7f020011;
+        public static final int rank042=0x7f020012;
+        public static final int rank051=0x7f020013;
+        public static final int rank052=0x7f020014;
+        public static final int rank061=0x7f020015;
+        public static final int rank062=0x7f020016;
+        public static final int rank071=0x7f020017;
+        public static final int rank072=0x7f020018;
+        public static final int rank081=0x7f020019;
+        public static final int rank082=0x7f02001a;
+        public static final int rank091=0x7f02001b;
+        public static final int rank092=0x7f02001c;
+        public static final int rank101=0x7f02001d;
+        public static final int rank102=0x7f02001e;
+        public static final int rank111=0x7f02001f;
+        public static final int rank112=0x7f020020;
+        public static final int rank121=0x7f020021;
+        public static final int rank122=0x7f020022;
+        public static final int rank131=0x7f020023;
+        public static final int rank132=0x7f020024;
+        public static final int rank141=0x7f020025;
+        public static final int rank142=0x7f020026;
+        public static final int rank151=0x7f020027;
+        public static final int rank152=0x7f020028;
+        public static final int rank161=0x7f020029;
+        public static final int rank162=0x7f02002a;
+        public static final int revive56x56=0x7f02002b;
+        public static final int revivedialog_back_with_border=0x7f02002c;
+        public static final int showcoin_back_with_border=0x7f02002d;
+        public static final int soundclose40x40=0x7f02002e;
+        public static final int soundopen40x40=0x7f02002f;
+        public static final int su_30_flanker=0x7f020030;
+        public static final int su_30_flanker_revive55x55=0x7f020031;
     }
     public static final class id {
         public static final int LinearLayout2=0x7f0a0019;
@@ -135,24 +124,23 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f060000;
-        public static final int back_main=0x7f06000a;
-        public static final int continu=0x7f060007;
-        public static final int hello_world=0x7f060001;
-        public static final int hign_score=0x7f060009;
-        public static final int level=0x7f060008;
-        public static final int menu_settings=0x7f060002;
-        public static final int multiply=0x7f060012;
-        public static final int need=0x7f06000f;
-        public static final int no=0x7f060011;
-        public static final int pause=0x7f060005;
-        public static final int quit=0x7f06000c;
-        public static final int resume=0x7f060004;
-        public static final int revive=0x7f060006;
-        public static final int sec=0x7f06000b;
-        public static final int start=0x7f060003;
-        public static final int survive=0x7f06000e;
-        public static final int want_to_revive=0x7f06000d;
-        public static final int yes=0x7f060010;
+        public static final int back_main=0x7f060006;
+        public static final int continu=0x7f060005;
+        public static final int game_result_title=0x7f060011;
+        public static final int hign_score=0x7f06000f;
+        public static final int hign_score_title=0x7f060010;
+        public static final int menu_settings=0x7f060001;
+        public static final int multiply=0x7f06000e;
+        public static final int need=0x7f06000b;
+        public static final int no=0x7f06000d;
+        public static final int pause=0x7f060004;
+        public static final int quit=0x7f060008;
+        public static final int resume=0x7f060003;
+        public static final int sec=0x7f060007;
+        public static final int start=0x7f060002;
+        public static final int survive=0x7f06000a;
+        public static final int want_to_revive=0x7f060009;
+        public static final int yes=0x7f06000c;
     }
     public static final class style {
         /** 
@@ -181,6 +169,7 @@ public final class R {
  All customizations that are NOT specific to a particular API-level can go here. 
          */
         public static final int AppTheme=0x7f080001;
+        public static final int StyleButton=0x7f080004;
         /**  實現透明style 
          */
         public static final int TANCStyle=0x7f080002;

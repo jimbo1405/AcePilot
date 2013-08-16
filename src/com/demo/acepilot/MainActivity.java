@@ -369,6 +369,7 @@ public class MainActivity extends Activity {
 			switch(v.getId()){
 			//btnStart
 			case R.id.button1:					
+				btnStart.setEnabled(false);
 				sp.play(clickSound1, 1, 1, 0, 0, 1);
 				sendStartNewGame();									//call sendStrNewGame().
 				setHideAnimation(btnStart,btnQuit,btnHighScore);	//set view's hidding animation.

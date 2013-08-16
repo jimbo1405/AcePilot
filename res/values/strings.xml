@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">AcePilot</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">AcePilot</string>    
     <string name="menu_settings">Settings</string>
-    <string name="start">START</string>
-    <string name="resume">RESUME</string>
-    <string name="pause">PAUSE</string>
-    <string name="revive">REVIVE</string>    
-    <string name="continu">CONTINUE</string>
-    <string name="level">LEVEL</string>
+    <string name="start">Start</string>
+    <string name="resume">Resume</string>
+    <string name="pause">Pause</string>        
+    <string name="continu">Continue</string>    
+    <string name="back_main">Back Main</string>
+    <string name="sec">sec</string>
+    <string name="quit">Quit</string>
+    <string name="want_to_revive">Do you want to revive ?</string>
+    <string name="survive">Survive</string>
+    <string name="need">Need</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="multiply">x</string>
+    <string name="hign_score">High Score</string>
+    <string name="hign_score_title">HIGH SCORE</string>
+    <string name="game_result_title">GAME RESULT</string>
+    
     <string-array name="comment_array">
         <item>Come on man!</item>
         <item>Come on man!</item>
@@ -59,7 +69,7 @@
         <item >Are you human being?</item>
         <item >Are you human being?</item>
     </string-array>
-    <string name="hign_score">HIGH SCORE</string>
+    
     <string-array name="rank">
         <item >1st</item>
         <item >2nd</item>
@@ -67,14 +77,5 @@
         <item >4th</item>
         <item >5th</item>
     </string-array>
-    <string name="back_main">BACK MAIN</string>
-    <string name="sec">sec</string>
-    <string name="quit">QUIT</string>
-    <string name="want_to_revive">Do you want to revive ?</string>
-    <string name="survive">Survive</string>
-    <string name="need">Need</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="multiply">x</string>
 
 </resources>
