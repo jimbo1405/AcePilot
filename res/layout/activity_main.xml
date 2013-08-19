@@ -111,4 +111,13 @@
         android:layout_centerVertical="true"
         android:src="@drawable/kuwang_logo_400x450" />
 
+    <LinearLayout
+        android:id="@+id/admob_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical" >
+    </LinearLayout>
+
 </RelativeLayout>

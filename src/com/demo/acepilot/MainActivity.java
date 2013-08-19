@@ -2,6 +2,11 @@ package com.demo.acepilot;
 
 import java.lang.ref.WeakReference;
 import java.text.DecimalFormat;
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
+import com.google.ads.ac;
+
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.SoundPool;
@@ -84,6 +89,8 @@ public class MainActivity extends Activity {
 	private final static int SET_LOGO_GONE = 3000;
 	public static boolean firstRunFlag = true;				//the flag implies whether is first running.It must be false from HighScoreActivity.
 	
+	private LinearLayout adLayout;							//advertisement.
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -108,7 +115,9 @@ public class MainActivity extends Activity {
 		}else{
 			myGameHandler.sendEmptyMessage(GameStatus.GAME_READY.ordinal());
 			firstRunFlag = true;
-		}		
+		}
+		
+		addAdMob();																							//add advertisement.
 	}
 	
 	//find views and init some vlaues.
@@ -221,7 +230,7 @@ public class MainActivity extends Activity {
 					if(msg.arg1 == SET_LOGO_GONE){
 						activity.setHideAnimation(activity.ivLogo);			//set ivLogo hide animation.
 						activity.setViewGone(activity.ivLogo);
-					}else{
+					}else{						
 						activity.setViewsToFront(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.tvStartCD,activity.ivSound);
 						activity.setViewVisible(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.ivSound);	//set views to be visible.
 						gameStatus = GameStatus.GAME_READY.ordinal();	//********************
@@ -371,9 +380,9 @@ public class MainActivity extends Activity {
 			case R.id.button1:					
 				btnStart.setEnabled(false);
 				sp.play(clickSound1, 1, 1, 0, 0, 1);
-				sendStartNewGame();									//call sendStrNewGame().
-				setHideAnimation(btnStart,btnQuit,btnHighScore);	//set view's hidding animation.
-				setViewGone(btnStart,btnQuit,btnHighScore);			//set views to be gone.				
+				sendStartNewGame();											//call sendStrNewGame().
+				setHideAnimation(btnStart,btnQuit,btnHighScore,adLayout);	//set view's hidding animation.
+				setViewGone(btnStart,btnQuit,btnHighScore,adLayout);		//set views to be gone.				
 				mpMainMenu.stop();				
 				mpPlaying.start();
 				break;
@@ -684,6 +693,16 @@ public class MainActivity extends Activity {
 			v.clearAnimation();
 			v.setAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.hidden));
 		}	
+	}
+	
+	//add advertisement.
+	private void addAdMob(){
+		adLayout = (LinearLayout)findViewById(R.id.admob_layout);
+		AdView adView = new AdView(MainActivity.this, AdSize.BANNER, "a15204860267283");
+		adLayout.addView(adView);
+		AdRequest request = new AdRequest();
+		adView.loadAd(request);
+		adLayout.bringToFront();
 	}
 	
 	@Override
