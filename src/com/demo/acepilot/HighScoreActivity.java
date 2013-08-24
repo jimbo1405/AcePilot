@@ -15,10 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -26,16 +23,24 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
+
+import com.facebook.FacebookException;
+import com.facebook.FacebookOperationCanceledException;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.model.GraphUser;
+import com.facebook.widget.WebDialog;
 
 //this activity binds with high_score_layout.
 public class HighScoreActivity extends Activity{
 	private SoundPool sp;
 	private int clickSound1;
 	
-	private Button btnBackMain;
+	private Button btnBackMain, btnShowOnFB;
 	private ListView myListView;
 	private ImageView iv;
 	private MyOnClickListener myOnClickListener;
@@ -55,6 +60,9 @@ public class HighScoreActivity extends Activity{
 	private boolean etOnItemReadyFlag = false;
 	public static boolean updateFlag; 					//check if need to execute updateHighScore(currGameRecords).
 	
+	private double score;								//current score got.
+	private String userName;							//user name gets from FB.
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -71,14 +79,15 @@ public class HighScoreActivity extends Activity{
 		initWaitLViewHandler();							//initial handler.
 		
 		if(myDataBaseHelper == null)					//initial myDataBaseHelper.
-			myDataBaseHelper=new DataBaseHelper(HighScoreActivity.this);
+			myDataBaseHelper = new DataBaseHelper(HighScoreActivity.this);
 		
 		currGameRecords = getCurrGameRecords();			//get current GameRecords obj. 
 		if(updateFlag)
 			updateHighScore(currGameRecords);			//update database.
 		showListView();									//show the listView.
 		if(beatRecordFlag == true){						//if it gets top 5, request the focus of editText at the specified item of myListView. 
-			requestInputName();						
+			requestInputName();
+			btnShowOnFB.setVisibility(View.VISIBLE);
 		}
 		
 		btnBackMain.setOnClickListener(myOnClickListener);
@@ -91,10 +100,13 @@ public class HighScoreActivity extends Activity{
 	}
 	
 	private void findView(){
-		btnBackMain=(Button)findViewById(R.id.button1);
-		myListView=(ListView)findViewById(R.id.listView1);		
-		iv=(ImageView)findViewById(R.id.imageView1);
+		btnBackMain = (Button)findViewById(R.id.button1);
+		btnShowOnFB = (Button)findViewById(R.id.btn_showOnFB);
+		myListView = (ListView)findViewById(R.id.listView1);		
+		iv = (ImageView)findViewById(R.id.imageView1);
+		
 		myOnClickListener = new MyOnClickListener();
+		btnShowOnFB.setOnClickListener(myOnClickListener);
 	}
 	
 	private class MyOnClickListener implements View.OnClickListener{
@@ -121,9 +133,95 @@ public class HighScoreActivity extends Activity{
 				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //注意本行的FLAG设置
 				startActivity(myIntent);				
 				break;
+				
+			case R.id.btn_showOnFB:
+				
+				Session.openActiveSession(HighScoreActivity.this, true, new Session.StatusCallback() {
+			    	   
+			    	@Override
+			    	public void call(Session session, SessionState state,Exception exception) {
+			    		if (session.isOpened()) {
+			    			Log.d("fbt",session.getAccessToken()); // get token
+			    			
+			    			 Request.executeMeRequestAsync(session, new Request.GraphUserCallback() {
+
+			    		            // callback after Graph API response with user object
+			    		            @Override
+			    		            public void onCompleted(GraphUser user, Response response) {
+			    		              if (user != null) {
+			    		            	  userName = user.getName();
+			    		            	  publishFeedDialog();
+			    		              }
+			    		            }
+
+			    		     });
+			    						    			
+			    	    }else
+			    	    	Log.d("fbt",""+session.isOpened());
+			    	}
+			    	
+			    });
+				
+				break;
 			}			
 		}		
 	}
+	
+	//the method to create FB post dialog.
+	private void publishFeedDialog() {
+	    Bundle params = new Bundle();
+	    params.putString("name", "Exciting Game AcePilot for Android !");
+	    params.putString("caption", "How long can you survive ?");
+	    params.putString("description", userName + " survived "+ score +" seconds ! How about you ?!");
+	    params.putString("link", "https://developers.facebook.com/android");
+	    params.putString("picture", "https://raw.github.com/fbsamples/ios-3.x-howtos/master/Images/iossdk_logo.png");
+	    
+	    WebDialog feedDialog = (
+	        new WebDialog.FeedDialogBuilder(HighScoreActivity.this,
+	        		Session.getActiveSession(),
+	            params))
+	        .setOnCompleteListener(new WebDialog.OnCompleteListener() {
+
+	            @Override
+	            public void onComplete(Bundle values,
+	                FacebookException error) {
+	                if (error == null) {
+	                    // When the story is posted, echo the success
+	                    // and the post Id.
+	                    final String postId = values.getString("post_id");
+	                    if (postId != null) {
+	                        Toast.makeText(HighScoreActivity.this,
+	                            "Posted story, id: "+postId,
+	                            Toast.LENGTH_SHORT).show();
+	                    } else {
+	                        // User clicked the Cancel button
+	                        Toast.makeText(HighScoreActivity.this, 
+	                            "Publish cancelled", 
+	                            Toast.LENGTH_SHORT).show();
+	                    }
+	                } else if (error instanceof FacebookOperationCanceledException) {
+	                    // User clicked the "x" button
+	                    Toast.makeText(HighScoreActivity.this, 
+	                        "Publish cancelled", 
+	                        Toast.LENGTH_SHORT).show();
+	                } else {
+	                    // Generic, ex: network error
+	                    Toast.makeText(HighScoreActivity.this, 
+	                        "Error posting story", 
+	                        Toast.LENGTH_SHORT).show();
+	                }
+	            }
+
+	        })
+	        .build();
+	    feedDialog.show();
+	}
+	
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    super.onActivityResult(requestCode, resultCode, data);
+	    Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+    }
 	
 	private class MyOnFocusChangeListener implements View.OnFocusChangeListener{
 		@Override
@@ -152,7 +250,7 @@ public class HighScoreActivity extends Activity{
 	
 	//generate a current GameRecords obj.
 	private GameRecords getCurrGameRecords(){
-		double score=this.getIntent().getDoubleExtra("score", 0);
+		score=this.getIntent().getDoubleExtra("score", 0);
 		String level=this.getIntent().getStringExtra("level");
 		currGameRecords = new GameRecords();
 		currGameRecords.setScore(score);
@@ -330,6 +428,7 @@ public class HighScoreActivity extends Activity{
 			myDataBaseHelper.close();
 		
 		MainActivity.firstRunFlag = false;	//set firstRunFlag to be false.
+				
 	}
 	
 	@Override

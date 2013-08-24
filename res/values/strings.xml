@@ -19,6 +19,7 @@
     <string name="hign_score">High Score</string>
     <string name="hign_score_title">HIGH SCORE</string>
     <string name="game_result_title">GAME RESULT</string>
+    <string name="show_on_fb">Show On FB</string>
     
     <string-array name="comment_array">
         <item>Come on man!</item>
@@ -77,5 +78,7 @@
         <item >4th</item>
         <item >5th</item>
     </string-array>
+    
+    <string name="app_id">619047761480338</string>
 
 </resources>
