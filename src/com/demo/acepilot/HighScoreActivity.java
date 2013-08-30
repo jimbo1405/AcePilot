@@ -26,6 +26,8 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.demo.acepilot.engine.Audio.Music;
+import com.demo.acepilot.engine.Audio.SFX;
 import com.facebook.FacebookException;
 import com.facebook.FacebookOperationCanceledException;
 import com.facebook.Request;
@@ -37,9 +39,7 @@ import com.facebook.widget.WebDialog;
 
 //this activity binds with high_score_layout.
 public class HighScoreActivity extends Activity{
-	private SoundPool sp;
-	private int clickSound1;
-	
+
 	private Button btnBackMain, btnShowOnFB;
 	private ListView myListView;
 	private ImageView iv;
@@ -71,8 +71,7 @@ public class HighScoreActivity extends Activity{
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//set full screen.
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);											//set protrait screen.
 		setContentView(R.layout.high_score_layout);
-		
-		initSoundResource();
+
 		findView();
 		
 		imManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
@@ -92,13 +91,7 @@ public class HighScoreActivity extends Activity{
 		
 		btnBackMain.setOnClickListener(myOnClickListener);
 	}
-	
-	//init sound source.
-	private void initSoundResource(){		
-		sp = new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
-		clickSound1 = sp.load(HighScoreActivity.this, R.raw.cameraflash, 1);
-	}
-	
+
 	private void findView(){
 		btnBackMain = (Button)findViewById(R.id.button1);
 		btnShowOnFB = (Button)findViewById(R.id.btn_showOnFB);
@@ -119,7 +112,7 @@ public class HighScoreActivity extends Activity{
 				break;
 				
 			case R.id.button1:
-				sp.play(clickSound1, 1, 1, 0, 0, 1);
+				MainActivity.audio.play(SFX.CLICK);
 				if(beatRecordFlag == true && etOnItemReadyFlag == true){	
 					GameRecords tmpGR = myGameRecordsList.get(getCurrPosition());	//get current GameRecords obj. 
 					int n = myDataBaseHelper.updateData(etOnItem, tmpGR);			//update HighScore set name='xxx' where id=?;
@@ -130,7 +123,7 @@ public class HighScoreActivity extends Activity{
 				Intent myIntent = new Intent();
 				myIntent.setClass(HighScoreActivity.this, MainActivity.class);
 //				myIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //注意本行的FLAG设置
+				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				startActivity(myIntent);				
 				break;
 				
@@ -407,10 +400,11 @@ public class HighScoreActivity extends Activity{
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
+		Log.d("jimbo","HighScore onResume()...");
 		if(MainActivity.gameStatus == GameStatus.GAME_READY.ordinal())
-			MainActivity.mpMainMenu.start();
+			MainActivity.audio.play(Music.MAIN_MENU);
 		else
-			MainActivity.mpPlaying.start();
+			MainActivity.audio.play(Music.PLAYING);
 	}	
 	
 	@Override
@@ -419,10 +413,7 @@ public class HighScoreActivity extends Activity{
 		super.onPause();
 		Log.d("jimbo","HighScore onPause()...");
 		
-		if(MainActivity.gameStatus == GameStatus.GAME_READY.ordinal())
-			MainActivity.mpMainMenu.pause();
-		else
-			MainActivity.mpPlaying.pause();
+		MainActivity.audio.pauseMusic();
 		
 		if(myDataBaseHelper != null)
 			myDataBaseHelper.close();
@@ -443,10 +434,7 @@ public class HighScoreActivity extends Activity{
 		// TODO Auto-generated method stub
 		super.onDestroy();
 		Log.d("jimbo","HighScore onDestroy()...");
-		if(sp != null){
-			sp.release();
-			sp = null;
-		}
+		//MainActivity.audio.destroy();
 	}
 	
 }

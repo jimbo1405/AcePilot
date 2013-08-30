@@ -2,6 +2,8 @@ package com.demo.acepilot;
 
 import java.text.DecimalFormat;
 
+import com.demo.acepilot.engine.Audio.SFX;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -22,9 +24,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class GameResultActivity extends Activity{
-	private SoundPool sp;
-	private int clickSound1;
-	
 	private Button btnContinue;
 	private ImageView ivLevel;
 	private TextView tvCoin,tvScore,tvComment,tvReviveCount;
@@ -40,31 +39,24 @@ public class GameResultActivity extends Activity{
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//設定全螢幕
-		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//設定螢幕為垂直
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);//full screen
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);		//set it as vertical
 		setContentView(R.layout.game_result_layout);
-		
-		initSoundResource();		
+	
 		findView();
-		
+
 		createGameResultHandler();
-		
+
 		coinGet=this.getIntent().getIntExtra("coinGet", 0);
 		score = MyConstant.calTotalSec(Double.parseDouble(this.getIntent().getStringExtra("timeScoreInSec")), 
 				MainActivity.reviveCount);		
-		
+
 		makeComment();
-		
+
 		sendShowResultMsg();
 		registerBtnContinue();
 	}
-	
-	//init sound source.
-	private void initSoundResource(){
-		sp = new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
-		clickSound1 = sp.load(GameResultActivity.this, R.raw.cameraflash, 1);
-	}
-	
+
 	private void findView(){
 		btnContinue=(Button)findViewById(R.id.button1);
 		ivLevel=(ImageView)findViewById(R.id.imageView4);
@@ -72,36 +64,36 @@ public class GameResultActivity extends Activity{
 		tvScore=(TextView)findViewById(R.id.textView2);
 		tvComment=(TextView)findViewById(R.id.textView3);
 		tvReviveCount=(TextView)findViewById(R.id.tv_revive);
-		
+
 		ivLevel.setImageBitmap(null);
 		tvCoin.setText("");
 		tvScore.setText("");
 		tvReviveCount.setText("");
 		tvComment.setText("");
 	}
-		
+
 	private void registerBtnContinue(){
 		btnContinue.setOnClickListener(new View.OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-				sp.play(clickSound1, 1, 1, 0, 0, 1);
+				MainActivity.audio.play(SFX.CLICK);
 				Intent myIntent=new Intent();
 				myIntent.setClass(GameResultActivity.this, HighScoreActivity.class);
 				myIntent.putExtra("score", score);
 				myIntent.putExtra("level", level);
-				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //注意本行的FLAG设置
+				myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //Note! we set special FLAG here
 				HighScoreActivity.updateFlag = true;	//updateFlag must be false when go to highscore page from GameResult page directly.
 				startActivity(myIntent);
 			}
 		});
 	}
-	
-	//決定評語的方法..generate comment & bitmap to show as lvl by the score.
+
+	//Comment generator..generate comment & bitmap to show as lvl by the score.
 	private void makeComment(){
-		
+
 		String[] tmpCommentArray = getResources().getStringArray(R.array.comment_array);
-		
+
 		if(score < MyConstant.COMMENT_SEC_RANGE[0]){
 			comment=tmpCommentArray[0];
 			imageId = MyConstant.DrawableIdArray[0];
@@ -231,9 +223,9 @@ public class GameResultActivity extends Activity{
 			imageId = MyConstant.DrawableIdArray[30];
 			level="32";
 		}
-	
+
 	}
-	
+
 	private void createGameResultHandler(){
 		resultHandler=new Handler(){
 
@@ -244,31 +236,31 @@ public class GameResultActivity extends Activity{
 				case 100:
 					tvCoin.setText(getString(R.string.multiply) + "  " + coinGet + "     ");
 					break;
-				
+
 				case 200:
 					tvReviveCount.setText(getString(R.string.multiply) + "  " + MainActivity.reviveCount + "     ");
 					break;	
-					
+
 				case 300:
 					tvScore.setText(df.format(score)+"  sec" + "     ");
 					break;
-				
+
 				case 400:
 					tvComment.setText(comment);					
 					break;
-					
+
 				case 500:
 					ivLevel.setImageResource(imageId);
 					break;
 				}
 			}
-			
+
 		};		
 	}
-	
+
 	private void sendShowResultMsg(){
 		new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() { 
 				try {
@@ -288,7 +280,7 @@ public class GameResultActivity extends Activity{
 			}
 		}).start();
 	}
-		
+
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		//lock key_BACK.
@@ -305,16 +297,16 @@ public class GameResultActivity extends Activity{
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		MainActivity.mpPlaying.start();
+		MainActivity.audio.resumeMusic();
 	}
 
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
-		MainActivity.mpPlaying.pause();
+		MainActivity.audio.pauseMusic();
 	}
-	
+
 	@Override
 	protected void onStop() {
 		// TODO Auto-generated method stub
@@ -325,9 +317,6 @@ public class GameResultActivity extends Activity{
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		if(sp != null){
-			sp.release();
-			sp = null;
-		}
+		//MainActivity.audio.destroy();
 	}
 }
