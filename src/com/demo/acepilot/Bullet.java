@@ -27,10 +27,10 @@ public class Bullet{
 
 	 private short[] indices = { 0, 1, 2, 0, 2, 3 };
 	 
-	 private float[] textureCor = { 0.0f, 0.0f, //
-			   0.0f, 1.0f, //
-			   1.0f, 1.0f, //
-			   1.0f, 0.0f, //
+	 private float[] textureCor = { 0.0f, 0.0f, 
+			   0.0f, 1.0f, 
+			   1.0f, 1.0f, 
+			   1.0f, 0.0f, 
 			 };
 
 	 private FloatBuffer vertexBuffer;
@@ -78,7 +78,7 @@ public class Bullet{
 	public void draw(GL10 gl) {
 	    gl.glEnable(GL10.GL_TEXTURE_2D);	
 		gl.glFrontFace(GL10.GL_CCW);
-		gl.glEnable(GL10.GL_CULL_FACE);
+		gl.glEnable(GL10.GL_CULL_FACE);
 		gl.glCullFace(GL10.GL_BACK);
 		
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
