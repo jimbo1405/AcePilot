@@ -2,15 +2,24 @@ package com.demo.acepilot;
 
 import java.lang.ref.WeakReference;
 import java.text.DecimalFormat;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.demo.acepilot.engine.Audio;
 import com.demo.acepilot.engine.Audio.Music;
 import com.demo.acepilot.engine.Audio.SFX;
+import com.facebook.FacebookException;
+import com.facebook.FacebookOperationCanceledException;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.model.GraphUser;
+import com.facebook.widget.WebDialog;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
-import com.google.ads.ac;
-
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,25 +32,33 @@ import android.content.pm.ActivityInfo;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.widget.ViewFlipper;
 
 //the MainActivity of this proj.
 public class MainActivity extends Activity {
-
+	//-------------------------activity_main-------------------------------------
 	private static boolean SoundEnabled;
 	private Button btnStart,btnQuit,btnHighScore,btnRestart;
 	private ToggleButton btnPauseResume;
@@ -53,9 +70,9 @@ public class MainActivity extends Activity {
 	private MyRender myRender; 
 	private RelativeLayout gl_layout;
 	private long timeStart;									//records the time start playing anytime.
-	private double timeScore;								//records the score which is the whole time of playing.
-	private String timeScoreInSec;							//
-	private DecimalFormat df;								//use to format timeScore.
+	private double timeScore;								//records the score which is the whole time of playing.(in millisecond)
+	private String timeScoreInSec="0.000";				    //
+	private DecimalFormat df=new DecimalFormat("0.000");	//use to format timeScore.
 
 	public static MyGameHandler myGameHandler;				//a handler to handle message,include game mode,...etc.
 	public static int gameStatus;							//records the status of the game.
@@ -89,6 +106,41 @@ public class MainActivity extends Activity {
 	private LinearLayout adLayout;							//advertisement.
 	public static Audio audio;
 	
+	private ViewFlipper vf;
+	//--------------------------------------------------------------------------------
+	
+	//-------------------------game_result_layout-------------------------------------
+	private Button btnContinue;
+	private ImageView ivLevel;
+	private TextView tvCoin,tvScore,tvComment,tvReviveCount;
+	private int imageId;
+	private String comment;
+	private Handler resultHandler;	
+	private String level;
+	//--------------------------------------------------------------------------------
+	
+	//-------------------------high_score_layout--------------------------------------
+	private Button btnBackMain, btnShowOnFB;
+	private ListView myListView;
+	private ImageView ivBG;
+	private DataBaseHelper myDataBaseHelper;
+	private List<GameRecords> myGameRecordsList;
+	private GameRecords currGameRecords;
+	private SimpleAdapter mySimpleAdapter;
+	/*why to use waitLViewHandler? 
+	 * because we can only call getChildAt(int pos) method after the myListView is ready,
+	 * so we try to wait myListView for 500ms,or will return null and get NullPointerException.*/ 	  
+	private Handler waitLVHandler;						//a handler handles the msg which is sended from calling requestInputName().	
+	private final static int WAIT_FOR_LISTVIEW = 100;	//use for waitLViewHandler's case. 
+	private EditText etOnItem;							//an editText which is at the specified position of item of myListView.
+	private boolean beatRecordFlag = false;				//a flag represents whether get top 5.		
+	private InputMethodManager imManager;				//an obj to  control the soft keyboard.	
+	private boolean openSoftKeyboardFlag = true;
+	private boolean etOnItemReadyFlag = false;
+	private boolean updateFlag = false; 				//check if need to execute updateHighScore(currGameRecords).	
+	private String userName;							//user name gets from FB.
+	//--------------------------------------------------------------------------------
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -96,10 +148,10 @@ public class MainActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);	//full screen
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);											//vertical
-																					//init sound source.
-		setContentView(R.layout.activity_main);	
+																					
+		setContentView(R.layout.blank_layout);	
 
-		restorePerf();																								//get SharedPreferences.
+		restorePerf();																									//get SharedPreferences.
 		initSoundResource();
 		findViewAndInit();
 
@@ -120,15 +172,24 @@ public class MainActivity extends Activity {
 
 	//find views and init some vlaues.
 	private void findViewAndInit(){
-		gl_layout=(RelativeLayout)findViewById(R.id.gl_layout);
-		btnStart=(Button)findViewById(R.id.button1);
-		btnQuit=(Button)findViewById(R.id.button3);
-		btnHighScore=(Button)findViewById(R.id.button4);
-		btnRestart=(Button)findViewById(R.id.button2);
-		btnPauseResume=(ToggleButton)findViewById(R.id.toggleButton1);
-//		ivCoin=(ImageView)findViewById(R.id.imageView1);
-		ivSound=(ImageView)findViewById(R.id.imageView2);
-		ivLogo=(ImageView)findViewById(R.id.iv_logo);
+		vf = (ViewFlipper)findViewById(R.id.viewFlipper1); 
+		View viewMain = LayoutInflater.from(this).inflate(R.layout.activity_main, (ViewGroup)findViewById(R.id.gl_layout));
+		View viewGameResult = LayoutInflater.from(this).inflate(R.layout.game_result_layout, (ViewGroup)findViewById(R.id.game_result_layout));
+		View viewHighScore = LayoutInflater.from(this).inflate(R.layout.high_score_layout, (ViewGroup)findViewById(R.id.high_score_layout));
+		
+		vf.addView(viewMain, 0);
+		vf.addView(viewGameResult, 1);
+		vf.addView(viewHighScore, 2);
+		//-------------------------activity_main-------------------------------------
+		gl_layout=(RelativeLayout)viewMain.findViewById(R.id.gl_layout);
+		btnStart=(Button)viewMain.findViewById(R.id.button1);
+		btnQuit=(Button)viewMain.findViewById(R.id.button3);
+		btnHighScore=(Button)viewMain.findViewById(R.id.button4);
+		btnRestart=(Button)viewMain.findViewById(R.id.button2);
+		btnPauseResume=(ToggleButton)viewMain.findViewById(R.id.toggleButton1);
+		/*ivCoin=(ImageView)viewMain.findViewById(R.id.imageView1);*/
+		ivSound=(ImageView)viewMain.findViewById(R.id.imageView2);
+		ivLogo=(ImageView)viewMain.findViewById(R.id.iv_logo);
 
         if (SoundEnabled) {
         	ivSound.setImageResource(R.drawable.soundopen40x40);        	
@@ -136,23 +197,47 @@ public class MainActivity extends Activity {
         	ivSound.setImageResource(R.drawable.soundclose40x40);       	
         }
 
-        showCoinLayout = (LinearLayout)findViewById(R.id.showCoin_layout);
-		tvShowCoin=(TextView)findViewById(R.id.textView1);
+        showCoinLayout = (LinearLayout)viewMain.findViewById(R.id.showCoin_layout);
+		tvShowCoin=(TextView)viewMain.findViewById(R.id.textView1);
 		tvShowCoin.setText("X"+totalCoin);
-		tvStartCD=(TextView)findViewById(R.id.textView2);
-		tvStartCD.setText("");	//let tvStartCD become blank at first
-
-		df=new DecimalFormat("0.000");	//initial df and set pattern
+		tvStartCD=(TextView)viewMain.findViewById(R.id.textView2);
+		tvStartCD.setText("");													//let tvStartCD become blank at first
+											
 		prepareReviveDialog();
 
 		gameStatus = GameStatus.GAME_NOT_READY.ordinal();
 
 		initCoinNeed = 5;
 		reviveCount = 0;
-		coinGet = 0;
-
+		coinGet = 0;		
+		//---------------------------------------------------------------------------
+		
+		//-------------------------game_result_layout--------------------------------
+		btnContinue=(Button)viewGameResult.findViewById(R.id.btn_continue);
+		ivLevel=(ImageView)viewGameResult.findViewById(R.id.iv_level);
+		tvCoin=(TextView)viewGameResult.findViewById(R.id.tv_coin);
+		tvScore=(TextView)viewGameResult.findViewById(R.id.tv_score);
+		tvComment=(TextView)viewGameResult.findViewById(R.id.tv_comment);
+		tvReviveCount=(TextView)viewGameResult.findViewById(R.id.tv_revive);
+		clearGameResult();
+		//---------------------------------------------------------------------------
+		
+		//-------------------------high_score_layout---------------------------------
+		btnBackMain = (Button)viewHighScore.findViewById(R.id.btn_back_main);
+		btnShowOnFB = (Button)viewHighScore.findViewById(R.id.btn_showOnFB);
+		myListView = (ListView)viewHighScore.findViewById(R.id.list_high_score);		
+		ivBG = (ImageView)viewHighScore.findViewById(R.id.iv_bg_high_scoe);
+		//---------------------------------------------------------------------------		
 	}
-
+	
+	private void clearGameResult() {
+		ivLevel.setImageBitmap(null);
+		tvCoin.setText("");
+		tvScore.setText("");
+		tvReviveCount.setText("");
+		tvComment.setText("");
+	}
+	
 	//init sound source.
 	private void initSoundResource(){
 		
@@ -171,13 +256,24 @@ public class MainActivity extends Activity {
 
 	//set all btn's onClickListener.
 	private void setAllBtn(){				
-		MyButtonListener myButtonListener=new MyButtonListener(); 
+		MyButtonListener myButtonListener=new MyButtonListener();
+		//-------------------------activity_main-------------------------------------
 		btnStart.setOnClickListener(myButtonListener);
 		btnQuit.setOnClickListener(myButtonListener);
 		btnHighScore.setOnClickListener(myButtonListener);
 		btnRestart.setOnClickListener(myButtonListener);
 		btnPauseResume.setOnCheckedChangeListener(myButtonListener);
 		ivSound.setOnClickListener(myButtonListener);
+		//---------------------------------------------------------------------------
+		
+		//-------------------------game_result_layout--------------------------------		
+		btnContinue.setOnClickListener(myButtonListener);
+		//---------------------------------------------------------------------------
+		
+		//-------------------------game_high_score-----------------------------------
+		btnBackMain.setOnClickListener(myButtonListener);
+		btnShowOnFB.setOnClickListener(myButtonListener);
+	    //---------------------------------------------------------------------------		
 	}
 
 	//prepare myGlSurfaceView
@@ -190,6 +286,7 @@ public class MainActivity extends Activity {
 		myGlSurfaceView.setRenderer(myRender);
 		gl_layout.addView(myGlSurfaceView);
 		myGlSurfaceView.onPause();			
+		
 		//let views to be invisible.
 		setViewInVisible(btnStart,btnQuit,btnHighScore,btnPauseResume,showCoinLayout,ivSound,ivLogo);	
 		//set view's showing animation.
@@ -220,20 +317,20 @@ public class MainActivity extends Activity {
 
 				//GAME_READY
 				case 0:					
+					activity.vf.setDisplayedChild(0);
 					if(msg.arg1 == SET_LOGO_GONE){
-						activity.setHideAnimation(activity.ivLogo);			//set ivLogo hide animation.
+						activity.setHideAnimation(activity.ivLogo);			
 						activity.setViewGone(activity.ivLogo);
 					}else{						
-						activity.setViewsToFront(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.tvStartCD,activity.ivSound);
-						activity.setViewVisible(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.ivSound);	//set views to be visible.
-						gameStatus = GameStatus.GAME_READY.ordinal();	//********************
-//						mpMainMenu.start();								//***************************
+						activity.setViewsToFront(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.tvStartCD,activity.ivSound,activity.adLayout);
+						activity.setViewVisible(activity.btnStart,activity.btnQuit,activity.btnHighScore,activity.ivSound,activity.adLayout);	
+						gameStatus = GameStatus.GAME_READY.ordinal();	
 					}					
 					break;
 
 				//GAME_START
 				case 1:		
-					activity.handleStartNewGame(msg);				//call startGame().		
+					activity.handleStartNewGame(msg);				
 					break;
 
 				//GAME_PAUSE
@@ -242,7 +339,7 @@ public class MainActivity extends Activity {
 					if(gameStatus == GameStatus.GAME_START.ordinal() || gameStatus == GameStatus.GAME_RESUME.ordinal()
 							|| gameStatus == GameStatus.GAME_REVIVE.ordinal()){
 
-						activity.timeScore += System.currentTimeMillis() - activity.timeStart;			//********************************						
+						activity.timeScore += System.currentTimeMillis() - activity.timeStart;									
 						gameStatus=GameStatus.GAME_PAUSE.ordinal();
 
 					}else if(activity.countDownThread != null && activity.countDownThread.isAlive()){	//countDownThread wait if is alive.
@@ -287,7 +384,7 @@ public class MainActivity extends Activity {
 				//GAME_HIT
 				case 4:	
 					gameStatus=GameStatus.GAME_HIT.ordinal();
-					activity.myGlSurfaceView.onPause();	//make myGlSurfaceView pause.
+					activity.myGlSurfaceView.onPause();	
 					//setMessage() must writes here because onCreateDialog(int id) is only called once.
 					activity.timeScoreInSec=activity.df.format(activity.timeScore/1000);
 					TextView tvSec= (TextView)activity.reviveDialog.findViewById(R.id.text_sec);					
@@ -312,23 +409,29 @@ public class MainActivity extends Activity {
 
 				//GAME_OVER
 				case 6:
-					gameStatus=GameStatus.GAME_OVER.ordinal();					
-					Intent myIntent=new Intent();
+					gameStatus=GameStatus.GAME_OVER.ordinal();
+					activity.setViewGone(activity.btnPauseResume);
+					activity.vf.setDisplayedChild(1);
+					activity.workAtGameResult();
+					/*Intent myIntent=new Intent();
 					myIntent.setClass(activity, GameResultActivity.class);
 					myIntent.putExtra("timeScoreInSec",activity.timeScoreInSec);
 					myIntent.putExtra("coinGet",coinGet);
 					myIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //Note! we set special flag here
-					activity.startActivity(myIntent);					
+					activity.startActivity(myIntent);*/					
 					break;
 
 				//GAME_HIGHSCORE
 				case 7:					
-					Intent intent = new Intent(activity, HighScoreActivity.class);
+					gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();
+					activity.vf.setDisplayedChild(2);
+					activity.workAtHighScore();
+					/*Intent intent = new Intent(activity, HighScoreActivity.class);
 					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					HighScoreActivity.updateFlag = false;	//updateFlag must be false when go to highscore page from main page directly.
 					activity.startActivity(intent);
 					if(gameStatus != GameStatus.GAME_READY.ordinal())
-						gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();
+						gameStatus=GameStatus.GAME_HIGHSCORE.ordinal();*/
 					break;	
 
 				//handle for progressDialog.
@@ -354,11 +457,11 @@ public class MainActivity extends Activity {
 		myGameHandler=new MyGameHandler(MainActivity.this);
 	}
 
-	//
 	class MyButtonListener implements OnClickListener,CompoundButton.OnCheckedChangeListener{	
 		@Override
 		public void onClick(View v) {
 			switch(v.getId()){
+			//-------------------------activity_main-------------------------------------			
 			//btnStart
 			case R.id.button1:					
 				btnStart.setEnabled(false);
@@ -380,12 +483,14 @@ public class MainActivity extends Activity {
 			//btnQuit
 			case R.id.button3:
 				audio.play(SFX.CLICK);
+				firstRunFlag = true;
 				MainActivity.this.finish();	//end of the activity.
 				break;
 
 			//btnHighScore
 			case R.id.button4:
 				audio.play(SFX.CLICK);
+				updateFlag = false;	//updateFlag must be false when go to highscore page from main page directly.
 				myGameHandler.sendEmptyMessage(GameStatus.GAME_HIGHSCORE.ordinal());
 				break;
 
@@ -400,6 +505,72 @@ public class MainActivity extends Activity {
                 }
 				SoundEnabled = !SoundEnabled;
 				break;
+			//---------------------------------------------------------------------------
+
+			//-------------------------game_result_layout--------------------------------
+			case R.id.btn_continue:
+				audio.play(SFX.CLICK);
+				updateFlag = true;	//updateFlag must be false when go to highscore page from GameResult page directly.
+				myGameHandler.sendEmptyMessage(GameStatus.GAME_HIGHSCORE.ordinal());
+				break;
+			//---------------------------------------------------------------------------
+				
+			//-------------------------game_high_score-----------------------------------
+			case R.id.btn_back_main:
+				audio.play(SFX.CLICK);
+				if(beatRecordFlag == true && etOnItemReadyFlag == true){	
+					GameRecords tmpGR = myGameRecordsList.get(getCurrPosition());	//get current GameRecords obj. 
+					int n = myDataBaseHelper.updateData(etOnItem, tmpGR);			//update HighScore set name='xxx' where id=?;
+					if(n > 0){
+						Toast.makeText(MainActivity.this, "name saved...", Toast.LENGTH_LONG).show();
+					}						
+				}
+				
+				audio.pauseMusic();
+				
+				if(myDataBaseHelper != null)
+					myDataBaseHelper.close();
+				
+				firstRunFlag = false;	//set firstRunFlag to be false.
+				updateFlag = false;
+				beatRecordFlag = false;
+				btnStart.setEnabled(true);
+				setViewInVisible(btnShowOnFB);
+				timeScore = 0.0;
+				clearGameResult();				
+				gl_layout.removeView(myGlSurfaceView);
+				prepareGlSurfaceView();
+				
+				myGameHandler.sendEmptyMessage(GameStatus.GAME_READY.ordinal());
+				break;
+				
+			case R.id.iv_bg_high_scoe:
+				Log.d("jimbo","imageView onClick...");
+				etOnItem.clearFocus();
+				break;
+				
+			case R.id.btn_showOnFB:
+				Session.openActiveSession(MainActivity.this, true, new Session.StatusCallback() {			    	   
+			    	@Override
+			    	public void call(Session session, SessionState state,Exception exception) {
+			    		if (session.isOpened()) {
+			    			Log.d("fbt",session.getAccessToken()); // get token	    			
+			    			 Request.executeMeRequestAsync(session, new Request.GraphUserCallback() {
+			    		            // callback after Graph API response with user object
+			    		            @Override
+			    		            public void onCompleted(GraphUser user, Response response) {
+			    		              if (user != null) {
+			    		            	  userName = user.getName();
+			    		            	  publishFeedDialog();
+			    		              }
+			    		            }
+			    		     });			    						    			
+			    	    }else
+			    	    	Log.d("fbt",""+session.isOpened());
+			    	}			    	
+			    });
+				break;
+			//---------------------------------------------------------------------------				
 			}
 		}
 
@@ -409,11 +580,9 @@ public class MainActivity extends Activity {
 				boolean isChecked) {
 			if(isChecked){
 				myGameHandler.sendEmptyMessage(GameStatus.GAME_PAUSE.ordinal());
-//				timeScore += System.currentTimeMillis() - timeStart;	//*************************************
 			}	
 			else{
-				myGameHandler.sendEmptyMessage(GameStatus.GAME_RESUME.ordinal());
-//				timeStart = System.currentTimeMillis();					//**************************************************
+				myGameHandler.sendEmptyMessage(GameStatus.GAME_RESUME.ordinal());			
 			}
 			isChecked = !isChecked;
 		}
@@ -565,6 +734,7 @@ public class MainActivity extends Activity {
 				//btnNo
 				case R.id.button2:
 					audio.play(SFX.CLICK);
+					reviveDialog.cancel();
 					myGameHandler.sendEmptyMessage(GameStatus.GAME_OVER.ordinal());
 					break;	
 				}				
@@ -761,5 +931,421 @@ public class MainActivity extends Activity {
 		}
 
 		return super.onKeyDown(keyCode, event);
+	}
+	
+	
+	
+	
+//-------------------------------work or method used in game_result----------------------------------------------
+	private void workAtGameResult(){
+		createGameResultHandler();
+		makeComment(timeScore/1000);
+		sendShowResultMsg();
+	}
+	
+	private void createGameResultHandler(){
+		resultHandler=new Handler(){
+			@Override
+			public void handleMessage(Message msg) {				
+				super.handleMessage(msg);
+				switch(msg.what){
+				case 100:
+					tvCoin.setText(getString(R.string.multiply) + "  " + coinGet + "     ");
+					break;
+
+				case 200:
+					tvReviveCount.setText(getString(R.string.multiply) + "  " + MainActivity.reviveCount + "     ");
+					break;	
+
+				case 300:
+					tvScore.setText(timeScoreInSec + "  sec" + "     ");
+					break;
+
+				case 400:
+					tvComment.setText(comment);					
+					break;
+
+				case 500:
+					ivLevel.setImageResource(imageId);
+					break;
+				}
+			}
+		};		
+	}
+	
+	//Comment generator...generate comment & bitmap to show as lvl by the score.
+	private void makeComment(double score){
+		String[] tmpCommentArray = getResources().getStringArray(R.array.comment_array);
+
+		if(score < MyConstant.COMMENT_SEC_RANGE[0]){
+			comment=tmpCommentArray[0];
+			imageId = MyConstant.DrawableIdArray[0];
+			level="1";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[1]){
+			comment=tmpCommentArray[1];
+			imageId = MyConstant.DrawableIdArray[1];
+			level="2";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[2]){
+			comment=tmpCommentArray[2];
+			imageId = MyConstant.DrawableIdArray[2];
+			level="3";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[3]){
+			comment=tmpCommentArray[3];
+			imageId = MyConstant.DrawableIdArray[3];
+			level="4";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[4]){
+			comment=tmpCommentArray[4];
+			imageId = MyConstant.DrawableIdArray[4];
+			level="5";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[5]){
+			comment=tmpCommentArray[5];
+			imageId = MyConstant.DrawableIdArray[5];
+			level="6";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[6]){
+			comment=tmpCommentArray[6];
+			imageId = MyConstant.DrawableIdArray[6];
+			level="7";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[7]){
+			comment=tmpCommentArray[7];
+			imageId = MyConstant.DrawableIdArray[7];
+			level="8";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[8]){
+			comment=tmpCommentArray[8];
+			imageId = MyConstant.DrawableIdArray[8];
+			level="9";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[9]){
+			comment=tmpCommentArray[9];
+			imageId = MyConstant.DrawableIdArray[9];
+			level="10";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[10]){
+			comment=tmpCommentArray[10];
+			imageId = MyConstant.DrawableIdArray[10];
+			level="11";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[11]){
+			comment=tmpCommentArray[11];
+			imageId = MyConstant.DrawableIdArray[11];
+			level="12";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[12]){
+			comment=tmpCommentArray[12];
+			imageId = MyConstant.DrawableIdArray[12];
+			level="13";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[13]){
+			comment=tmpCommentArray[13];
+			imageId = MyConstant.DrawableIdArray[13];
+			level="14";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[14]){
+			comment=tmpCommentArray[14];
+			imageId = MyConstant.DrawableIdArray[14];
+			level="15";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[15]){
+			comment=tmpCommentArray[15];
+			imageId = MyConstant.DrawableIdArray[15];
+			level="16";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[16]){
+			comment=tmpCommentArray[16];
+			imageId = MyConstant.DrawableIdArray[16];
+			level="17";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[17]){
+			comment=tmpCommentArray[17];
+			imageId = MyConstant.DrawableIdArray[17];
+			level="18";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[18]){
+			comment=tmpCommentArray[18];
+			imageId = MyConstant.DrawableIdArray[18];
+			level="19";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[19]){
+			comment=tmpCommentArray[19];
+			imageId = MyConstant.DrawableIdArray[19];
+			level="20";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[20]){
+			comment=tmpCommentArray[20];
+			imageId = MyConstant.DrawableIdArray[20];
+			level="21";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[21]){
+			comment=tmpCommentArray[21];
+			imageId = MyConstant.DrawableIdArray[21];
+			level="22";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[22]){
+			comment=tmpCommentArray[22];
+			imageId = MyConstant.DrawableIdArray[22];
+			level="23";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[23]){
+			comment=tmpCommentArray[23];
+			imageId = MyConstant.DrawableIdArray[23];
+			level="24";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[24]){
+			comment=tmpCommentArray[24];
+			imageId = MyConstant.DrawableIdArray[24];
+			level="25";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[25]){
+			comment=tmpCommentArray[25];
+			imageId = MyConstant.DrawableIdArray[25];
+			level="26";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[26]){
+			comment=tmpCommentArray[26];
+			imageId = MyConstant.DrawableIdArray[26];
+			level="27";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[27]){
+			comment=tmpCommentArray[27];
+			imageId = MyConstant.DrawableIdArray[27];
+			level="28";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[28]){
+			comment=tmpCommentArray[28];
+			imageId = MyConstant.DrawableIdArray[28];
+			level="29";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[29]){
+			comment=tmpCommentArray[29];
+			imageId = MyConstant.DrawableIdArray[29];
+			level="30";
+		}else if(score < MyConstant.COMMENT_SEC_RANGE[30]){
+			comment=tmpCommentArray[30];
+			imageId = MyConstant.DrawableIdArray[30];
+			level="31";
+		}else{
+			comment=tmpCommentArray[30];
+			imageId = MyConstant.DrawableIdArray[30];
+			level="32";
+		}
+	}
+	
+	private void sendShowResultMsg(){
+		new Thread(new Runnable() {
+			@Override
+			public void run() { 
+				try {
+					Thread.sleep(1000);
+					resultHandler.sendEmptyMessage(100);					
+					Thread.sleep(1000);
+					resultHandler.sendEmptyMessage(200);					
+					Thread.sleep(1000);
+					resultHandler.sendEmptyMessage(300);
+					Thread.sleep(1000);
+					resultHandler.sendEmptyMessage(400);
+					Thread.sleep(1000);
+					resultHandler.sendEmptyMessage(500);				
+				} catch (InterruptedException e){ 
+					e.printStackTrace();
+				}
+			}
+		}).start();
+	}
+//-------------------------------------------------------------------------------------------------------
+	
+	
+//-------------------------------work or method used in high_score---------------------------------------	
+	private void workAtHighScore(){
+		imManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+		initWaitLViewHandler();							//initial handler.
+		
+		if(myDataBaseHelper == null)					//initial myDataBaseHelper.
+			myDataBaseHelper = new DataBaseHelper(MainActivity.this);
+		
+		currGameRecords = getCurrGameRecords();			//get current GameRecords obj. 
+		if(updateFlag)
+			updateHighScore(currGameRecords);			//update database.
+		showListView();									//show the listView.
+		if(beatRecordFlag == true){						//if it gets top 5, request the focus of editText at the specified item of myListView. 
+			requestInputName();
+			btnShowOnFB.setVisibility(View.VISIBLE);
+		}
+	}
+	
+	//initial a handler to handle the msg for setting editText to requestFocus() to input name.
+	private void initWaitLViewHandler(){
+		waitLVHandler = new Handler(){
+			@Override
+			public void handleMessage(Message msg) {
+				// TODO Auto-generated method stub
+				super.handleMessage(msg);
+				switch(msg.what){
+				case WAIT_FOR_LISTVIEW:
+					View view = myListView.getChildAt(getCurrPosition());					
+					etOnItem = (EditText)view.findViewById(R.id.editText1);										
+					etOnItem.setEnabled(true);
+					
+					etOnItem.clearFocus();
+					ivBG.clearFocus();
+					
+					MyOnFocusChangeListener myOnFocusChangeListener = new MyOnFocusChangeListener();					
+					etOnItem.setOnFocusChangeListener(myOnFocusChangeListener);
+					ivBG.setOnFocusChangeListener(myOnFocusChangeListener);
+										
+					ivBG.setOnClickListener(new MyButtonListener());
+					etOnItem.requestFocus();
+					
+					etOnItemReadyFlag = true;
+					break;
+				}
+			}			
+		};
+	}
+	
+	//send msg to handler for setting editText to requestFocus() to input name.
+	private void requestInputName(){		
+		new Thread(new Runnable() {			
+			@Override
+			public void run() { 
+				try {
+					Thread.sleep(500);					
+					waitLVHandler.sendEmptyMessage(WAIT_FOR_LISTVIEW);
+				} catch (InterruptedException e) { 
+					e.printStackTrace();
+				}				
+			}
+		}).start();
+	}
+	
+	//get current position of item of myListView.
+	private int getCurrPosition(){
+		//find max id, because it means it's the last inserted.
+		int idMax = 0;
+		for(int i=0;i<myGameRecordsList.size();i++){
+			GameRecords tmpGR = myGameRecordsList.get(i);			
+			if(tmpGR.getId() > idMax)
+				idMax = tmpGR.getId();
+		}
+		
+		int position = 0;
+		for(int i=0;i<myGameRecordsList.size();i++){
+			if(myGameRecordsList.get(i).getId() == idMax)
+				position = i;
+		}		
+		return position;
+	}
+	
+	private class MyOnFocusChangeListener implements View.OnFocusChangeListener{
+		@Override
+		public void onFocusChange(View v, boolean hasFocus) {			
+			switch(v.getId()){
+			case R.id.imageView1:
+				if(hasFocus){
+					imManager.hideSoftInputFromWindow(etOnItem.getWindowToken(), 0);
+					GameRecords tmpGR = myGameRecordsList.get(getCurrPosition());	//get current GameRecords obj. 
+					int n = myDataBaseHelper.updateData(etOnItem, tmpGR);			//update HighScore set name='xxx' where id=?;
+					if(n > 0){
+//						Toast.makeText(HighScoreActivity.this, "name saved...", Toast.LENGTH_LONG).show();
+					}	
+				}
+				break;
+				
+			case R.id.editText1:
+				if(hasFocus && openSoftKeyboardFlag){								
+					imManager.showSoftInput(etOnItem, InputMethodManager.SHOW_IMPLICIT);
+					openSoftKeyboardFlag = false;
+				}
+				break;
+			}			
+		}				
+	}
+	
+	//generate a current GameRecords obj.
+	private GameRecords getCurrGameRecords(){
+		currGameRecords = new GameRecords();
+		currGameRecords.setScore(Double.parseDouble(timeScoreInSec));
+		currGameRecords.setLevel(level);
+		return currGameRecords;
+	}
+	
+	//update the table "HighScore" in database.
+	private void updateHighScore(GameRecords currentGR){		
+		myGameRecordsList=myDataBaseHelper.genGameRecordsList();
+		int size = myGameRecordsList.size(); 
+		
+		if(size < 5){										//if myGameRecordsList.size() < 5, then insert directly. 
+			myDataBaseHelper.insertData(currentGR);
+			beatRecordFlag = true;							//set beatRecordFlag be true.
+		}else{												//if myGameRecordsList.size() == 5, and also if current score > 5th score in database,then delete before insert.
+			if(currentGR.getScore() >= myGameRecordsList.get(4).getScore()){
+				myDataBaseHelper.deleteData(myGameRecordsList.get(4), myGameRecordsList.get(4).getId());
+				myDataBaseHelper.insertData(currentGR);
+				beatRecordFlag = true;						//set beatRecordFlag be true. 
+			}
+		}
+	}
+	
+	//display the highscore content
+	private void showListView(){
+		List<Map<String,Object>> myList=new ArrayList<Map<String,Object>>();
+		myGameRecordsList = myDataBaseHelper.genGameRecordsList();
+		String[] fromArray = {"key1","key2","key3","key4"};
+		int[] toArray = {R.id.textView1, R.id.editText1 , R.id.textView2, R.id.imageView1};
+		String[] rankArray=getResources().getStringArray(R.array.rank);
+		DecimalFormat df = new DecimalFormat("0.000");
+		
+		for(int i=0;i<myGameRecordsList.size();i++){			
+			Map<String,Object> myMap=new HashMap<String,Object>();
+			GameRecords tmpGR=myGameRecordsList.get(i);
+			myMap.put("key1", rankArray[i]);
+			myMap.put("key2", tmpGR.getName());
+			myMap.put("key3", df.format(tmpGR.getScore()));
+			myMap.put("key4", getLevelDrawID(tmpGR));
+			myList.add(myMap);
+		}
+		mySimpleAdapter=new SimpleAdapter(MainActivity.this, myList, R.layout.my_listview_layout, fromArray, toArray);
+		myListView.setAdapter(mySimpleAdapter);
+	}
+	
+	//a method to decide which *.png of lvl to show.
+	private int getLevelDrawID(GameRecords currentGR){
+		String lvl = currentGR.getLevel();
+		int tempLvl = Integer.parseInt(lvl);		
+		return MyConstant.DrawableIdArray[tempLvl - 1];
 	}	
+	
+	//the method to create FB post dialog.
+	private void publishFeedDialog() {
+	    Bundle params = new Bundle();
+	    params.putString("name", "Exciting Game AcePilot for Android !");
+	    params.putString("caption", "How long can you survive ?");
+	    params.putString("description", userName + " survived "+ timeScoreInSec +" seconds ! How about you ?!");
+	    params.putString("link", "https://developers.facebook.com/android");
+	    params.putString("picture", "https://raw.github.com/fbsamples/ios-3.x-howtos/master/Images/iossdk_logo.png");
+	    
+	    WebDialog feedDialog = (
+	        new WebDialog.FeedDialogBuilder(MainActivity.this,
+	        		Session.getActiveSession(),
+	            params))
+	        .setOnCompleteListener(new WebDialog.OnCompleteListener() {
+
+	            @Override
+	            public void onComplete(Bundle values,
+	                FacebookException error) {
+	                if (error == null) {
+	                    // When the story is posted, echo the success
+	                    // and the post Id.
+	                    final String postId = values.getString("post_id");
+	                    if (postId != null) {
+	                        Toast.makeText(MainActivity.this,
+	                            "Posted story, id: "+postId,
+	                            Toast.LENGTH_SHORT).show();
+	                    } else {
+	                        // User clicked the Cancel button
+	                        Toast.makeText(MainActivity.this, 
+	                            "Publish cancelled", 
+	                            Toast.LENGTH_SHORT).show();
+	                    }
+	                } else if (error instanceof FacebookOperationCanceledException) {
+	                    // User clicked the "x" button
+	                    Toast.makeText(MainActivity.this, 
+	                        "Publish cancelled", 
+	                        Toast.LENGTH_SHORT).show();
+	                } else {
+	                    // Generic, ex: network error
+	                    Toast.makeText(MainActivity.this, 
+	                        "Error posting story", 
+	                        Toast.LENGTH_SHORT).show();
+	                }
+	            }
+
+	        })
+	        .build();
+	    feedDialog.show();
+	}
+	
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    super.onActivityResult(requestCode, resultCode, data);
+	    Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+    }
+//-------------------------------------------------------------------------------------------------------	
 }
